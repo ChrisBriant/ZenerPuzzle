@@ -29,6 +29,7 @@ let ground;
 let stack;
 let cursors;
 let touched = false;
+let touchcount=0;
 
 //Control variables - make local once tested
 let bottomrow;
@@ -177,14 +178,18 @@ function update() {
     }
   }
 
-  console.log(lines);
+  //console.log(lines);
 
   // Configure the controls!
   if (!cursors.down.isDown) {
+    if(touchcount > 0) {
+      touchcount -= 1;
+    }
     touched = false;
     //brick.children.forEach(child => child.setVelocityY(80));
     brick.setVelocityY(80);
-    if(cursors.left.isDown && !touched && !this.physics.overlap(brick,stack)) {
+    //// REVIEW: Line nleow not sure if the "!this.pysics.overlap" is needed
+    if(cursors.left.isDown && touchcount == 0 && !this.physics.overlap(brick,stack)) {
       //Add a blank sprite to the left and check collides with stack
       var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y + 30);
       if(!this.physics.overlap(checksprite, stack)) {
@@ -192,7 +197,8 @@ function update() {
       }
       checksprite.destroy();
       touched = true;
-    } else if (cursors.right.isDown) {
+      touchcount = 10;
+    } else if (cursors.right.isDown && touchcount == 0) {
       //Add a blank sprite to the left and check collides with stack
       var checksprite = this.physics.add.sprite(brick.children.entries[1].body.x + 60,brick.children.entries[0].body.y + 30);
       if(!this.physics.overlap(checksprite, stack)) {
@@ -200,6 +206,21 @@ function update() {
       }
       checksprite.destroy();
       touched = true;
+      touchcount = 10;
+    } else if (cursors.space.isDown && touchcount == 0) {
+      //Handle rotation
+      if(brick.children.entries[1].body.x > brick.children.entries[0].body.x + 5 && brick.children.entries[1].body.x > brick.children.entries[0].body.x - 5) {
+        //Brick is horrizontally alligned so move to vertical orientation
+        console.log("Horizontal");
+        brick.children.entries[0].body.x += 60;
+        brick.children.entries[0].body.y -= 60;
+      } else {
+        //Brick is orientated vertically so rotate to horizontal position
+        brick.children.entries[0].body.x += 60;
+        brick.children.entries[0].body.y += 60;
+      }
+      touched = true;
+      touchcount = 10;
     } else {
       brick.setVelocityX(0);
     }
