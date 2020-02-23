@@ -30,6 +30,10 @@ let stack;
 let cursors;
 let touched = false;
 
+//Control variables - make local once tested
+let bottomrow;
+let lineoffour;
+
 function preload() {
   //this.load.image("logo", logoImg);
   //this.load.image('tile1', tile1);
@@ -39,6 +43,7 @@ function preload() {
   this.load.image('tile4', './src/assets/bricks/tile4.png');
   this.load.image('tile5', './src/assets/bricks/tile5.png');
   this.load.image('ground', './src/assets/platform.png');
+  this.load.image('block30x30', './src/assets/bricks/block30x30.png');
 }
 
 function create() {
@@ -58,7 +63,9 @@ function create() {
   //Add the floor
   //ground = this.physics.add.sprite(300,this.game.config.height / 2 - 100, 'ground');
   ground = this.physics.add.staticGroup();
-  ground.create(300,500, 'ground');
+  //ground.create(300,500, 'ground');
+  var floor = this.add.tileSprite(400, 585, 800, 30, "block30x30");
+  ground.add(floor);
   //ground.body.setAllowGravity(false);
   this.physics.add.collider(brick, ground, tileHitsGroundOrBlock,null,this);
 
@@ -78,22 +85,73 @@ function create() {
 }
 
 
+function checkInsideSprite(x,y,sprite) {
+  if(sprite.body.left < x && sprite.body.right > x && sprite.body.top < y && sprite.body.bottom > y) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function checkLineofFour(spritearray) {
+  var matchcount = 0;
+  var matches = [];
+
+  for(var i = 0; i < spritearray.length; i++) {
+    if(i + 1 < spritearray.length) {
+      //Check next sprite is adjacent
+      if(spritearray[i+1].body.x < spritearray[i].body.x + 65 && spritearray[i+1].body.x > spritearray[i].body.x + 55) {
+        //Check texture is the same
+        if(spritearray[i+1].texture.key === spritearray[i].texture.key) {
+            matchcount++;
+        } else {
+          matchcount = 0;
+        }
+      } else {
+        matchcount = 0;
+      }
+      //Match is found
+      if(matchcount >= 3) {
+        matches.push(spritearray[i].texture.key);
+        matchcount = 0;
+      }
+    }
+  }
+  return matches;
+}
+
 function update() {
-  //console.log(this.physics.overlap(brick, stack));
+  //Detect line creation
+  //Iterate through each row
+  for (var i = 520; i > 70; i-= 60) {
+    //Get row and sort
+    var row = stack.children.entries.filter(child => child.body.y < i && child.body.y > i - 15 );
+    row.sort(function(a, b){return a.body.x - b.body.x});
+    lineoffour = checkLineofFour(row); //Check matches
+    if(lineoffour.length > 0) {
+      console.log(match);
+    }
+  }
   // Configure the controls!
-  //Without gravity
-  //brick.children.entries.forEach(child => child.body.y += 6);
   if (!cursors.down.isDown) {
     touched = false;
     //brick.children.forEach(child => child.setVelocityY(80));
     brick.setVelocityY(80);
-    if(cursors.left.isDown && !touched) {
-      //brick.setVelocityX(-60);
-      brick.children.entries.forEach(child => child.body.x -= 61);
+    if(cursors.left.isDown && !touched && !this.physics.overlap(brick,stack)) {
+      //Add a blank sprite to the left and check collides with stack
+      var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y + 30);
+      if(!this.physics.overlap(checksprite, stack)) {
+        brick.children.entries.forEach(child => child.body.x -= 61);
+      }
+      checksprite.destroy();
       touched = true;
     } else if (cursors.right.isDown) {
-      //brick.setVelocityX(60);
-      brick.children.entries.forEach(child => child.body.x += 61);
+      //Add a blank sprite to the left and check collides with stack
+      var checksprite = this.physics.add.sprite(brick.children.entries[1].body.x + 60,brick.children.entries[0].body.y + 30);
+      if(!this.physics.overlap(checksprite, stack)) {
+        brick.children.entries.forEach(child => child.body.x += 61);
+      }
+      checksprite.destroy();
       touched = true;
     } else {
       brick.setVelocityX(0);
@@ -105,11 +163,15 @@ function update() {
 }
 
 function tileHitsGroundOrBlock() {
+  //console.log(bottomrow);
+  //lineoffour = checkLineofFour(bottomrow);
+  //console.log(lineoffour);
+
   //console.log(brick);
-  brick.children.each(child => console.log(child.body.overlapY));
+  //brick.children.each(child => console.log(child.body.overlapY));
   //console.log(brick.children.entries.filter(child => child.body.touching));
   //brick.children.each(child => console.log(child.body));
-  var children = brick.getChildren();
+  //var children = brick.getChildren();
   var topofstack = brick.children.entries.filter(child => child.body.y < 60);
   //children.entries.forEach(child => console.log(child.body.y));
   //children.entries.forEach(child => stack.add(child));
@@ -131,9 +193,11 @@ function tileHitsGroundOrBlock() {
     //let brick = this.physics.add.group();
     brick.create((this.game.config.width / 2) - 60, 0, 'tile'+randomNumber(1,6));
     brick.create(this.game.config.width / 2, 0, 'tile'+randomNumber(1,6));
-    console.log("Here");
+    //console.log("Here");
     //ground.body.setAllowGravity(false);
     //ground.setVelocityY(0);
+  } else {
+    console.log(bottomrow);
   }
   //brick.children.each(child => child.body.blocked.left=true);
   //console.log(stack);
