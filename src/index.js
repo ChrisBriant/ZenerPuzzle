@@ -85,15 +85,16 @@ function create() {
 }
 
 
+/*
 function checkInsideSprite(x,y,sprite) {
   if(sprite.body.left < x && sprite.body.right > x && sprite.body.top < y && sprite.body.bottom > y) {
     return true;
   } else {
     return false;
   }
-}
+}*/
 
-function checkLineofFour(spritearray) {
+function checkLineofFourX(spritearray) {
   var matchcount = 0;
   var matches = [];
 
@@ -120,18 +121,64 @@ function checkLineofFour(spritearray) {
   return matches;
 }
 
+
+function checkLineofFourY(spritearray) {
+  var matchcount = 0;
+  var matches = [];
+
+  for(var i = 0; i < spritearray.length; i++) {
+    if(i + 1 < spritearray.length) {
+      //Check next sprite is adjacent
+      if(spritearray[i+1].body.y < spritearray[i].body.y + 65 && spritearray[i+1].body.y > spritearray[i].body.y + 55) {
+        //Check texture is the same
+        if(spritearray[i+1].texture.key === spritearray[i].texture.key) {
+            matchcount++;
+        } else {
+          matchcount = 0;
+        }
+      } else {
+        matchcount = 0;
+      }
+      //Match is found
+      if(matchcount >= 3) {
+        matches.push(spritearray[i].texture.key);
+        matchcount = 0;
+      }
+    }
+  }
+  return matches;
+}
+
 function update() {
   //Detect line creation
+  //HORIZONTAL LINES
   //Iterate through each row
+  var lines = [];
   for (var i = 520; i > 70; i-= 60) {
     //Get row and sort
     var row = stack.children.entries.filter(child => child.body.y < i && child.body.y > i - 15 );
     row.sort(function(a, b){return a.body.x - b.body.x});
-    lineoffour = checkLineofFour(row); //Check matches
+    lineoffour = checkLineofFourX(row); //Check matches
     if(lineoffour.length > 0) {
-      console.log(match);
+      lines.push(lineoffour);
+      //console.log(lineoffour);
     }
   }
+  //VERTICAL LINES
+  //Iterate through each column
+  for (var i = 0; i < 840; i+= 60) {
+    //Get row and sort
+    var col = stack.children.entries.filter(child => child.body.x < i + 15 && child.body.x > i );
+    col.sort(function(a, b){return a.body.y - b.body.y});
+    lineoffour = checkLineofFourY(col); //Check matches
+    if(lineoffour.length > 0) {
+      lines.push(lineoffour);
+      //console.log(lineoffour);
+    }
+  }
+
+  console.log(lines);
+
   // Configure the controls!
   if (!cursors.down.isDown) {
     touched = false;
@@ -200,5 +247,5 @@ function tileHitsGroundOrBlock() {
     console.log(bottomrow);
   }
   //brick.children.each(child => child.body.blocked.left=true);
-  //console.log(stack);
+  console.log(stack);
 }
