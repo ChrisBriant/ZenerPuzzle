@@ -34,6 +34,7 @@ let touchcount=0;
 //Control variables - make local once tested
 let bottomrow;
 let lineoffour;
+//let lines = [];
 
 function preload() {
   //this.load.image("logo", logoImg);
@@ -142,7 +143,7 @@ function checkLineofFourY(spritearray) {
       }
       //Match is found
       if(matchcount >= 3) {
-        matches.push(spritearray[i].texture.key);
+        matches.push({texture:spritearray[i].texture.key,matchx:spritearray[i].body.x,matchy:spritearray[i].body.y,matchcount:matchcount,type:'V'});
         matchcount = 0;
       }
     }
@@ -155,6 +156,7 @@ function update() {
   //HORIZONTAL LINES
   //Iterate through each row
   var lines = [];
+
   for (var i = 520; i > 70; i-= 60) {
     //Get row and sort
     var row = stack.children.entries.filter(child => child.body.y < i && child.body.y > i - 15 );
@@ -179,6 +181,24 @@ function update() {
   }
 
   //console.log(lines);
+  //If a match is detected then we need to do something with the blocks
+  if(lines.length > 0) {
+    for(var i=0;i<lines.length;i++) {
+      //Deal with vertical
+      if(lines[i].type == 'V') {
+          var x = lines[i].matchx;
+          var top = lines[i].matchy;
+          var bottom = top - (lines[i].matchcount * 60)
+
+          while(top < bottom) {
+            tile = stack.children.entries.filter(child => (child.body.x < x + 10 && child.body.x > x - 10) && (child.body.y < top + 10 && child.body.y > top - 10));
+            console.log(tile);
+            stack.remove(tile);
+            top += 60;
+          }
+      }
+    }
+  }
 
   // Configure the controls!
   if (!cursors.down.isDown) {
@@ -211,14 +231,39 @@ function update() {
       //Handle rotation
       if(brick.children.entries[1].body.x > brick.children.entries[0].body.x + 5 && brick.children.entries[1].body.x > brick.children.entries[0].body.x - 5) {
         //Brick is horrizontally alligned so move to vertical orientation
-        console.log("Horizontal");
-        brick.children.entries[0].body.x += 60;
-        brick.children.entries[0].body.y -= 60;
-      } else {
-        //Brick is orientated vertically so rotate to horizontal position
-        brick.children.entries[0].body.x += 60;
-        brick.children.entries[0].body.y += 60;
+        console.log("Horizontal left");
+        //Check not blocked
+        var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x + 60,brick.children.entries[0].body.y - 60,'tile1');
+        if(!this.physics.overlap(checksprite, stack)) {
+          brick.children.entries[0].body.x += 60;
+          brick.children.entries[0].body.y -= 60;
+        }
+      } else if(brick.children.entries[0].body.x > brick.children.entries[1].body.x + 5 && brick.children.entries[0].body.x > brick.children.entries[1].body.x - 5) {
+        //Brick is horizontally alligned with first brick on right
+        console.log("Horizontal right");
+        var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y + 60,'tile1');
+        if(!this.physics.overlap(checksprite, stack)) {
+          brick.children.entries[0].body.x -= 60;
+          brick.children.entries[0].body.y += 60;
+        }
+      } else if (brick.children.entries[1].body.y > brick.children.entries[0].body.y + 5 && brick.children.entries[1].body.y > brick.children.entries[0].body.y - 5) {
+        //Brick is orientated vertically and first brick is on top so rotate to horizontal position
+        console.log("Virtical top");
+        var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x + 60,brick.children.entries[0].body.y + 60,'tile1');
+        if(!this.physics.overlap(checksprite, stack)) {
+          brick.children.entries[0].body.x += 60;
+          brick.children.entries[0].body.y += 60;
+        }
+      } else if (brick.children.entries[0].body.y > brick.children.entries[1].body.y + 5 && brick.children.entries[0].body.y > brick.children.entries[1].body.y - 5) {
+        //Brick is orientated vertically and first brick is on bottom so rotate to horizontal position
+        console.log("Virtical bottom");
+        var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y - 60,'tile1');
+        if(!this.physics.overlap(checksprite, stack)) {
+          brick.children.entries[0].body.x -= 60;
+          brick.children.entries[0].body.y -= 60;
+        }
       }
+      checksprite.destroy();
       touched = true;
       touchcount = 10;
     } else {
@@ -231,7 +276,7 @@ function update() {
 }
 
 function tileHitsGroundOrBlock() {
-  //console.log(bottomrow);
+  //console.log(lines);
   //lineoffour = checkLineofFour(bottomrow);
   //console.log(lineoffour);
 
