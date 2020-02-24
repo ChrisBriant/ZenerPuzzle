@@ -126,6 +126,7 @@ function checkLineofFourX(spritearray) {
 
 function checkLineofFourY(spritearray) {
   var matchcount = 0;
+  var matchedtiles = [];
   var matches = [];
 
   for(var i = 0; i < spritearray.length; i++) {
@@ -135,15 +136,19 @@ function checkLineofFourY(spritearray) {
         //Check texture is the same
         if(spritearray[i+1].texture.key === spritearray[i].texture.key) {
             matchcount++;
+            matchedtiles.push({matchx:spritearray[i].body.x,matchy:spritearray[i].body.y});
         } else {
           matchcount = 0;
+          matchedtiles = [];
         }
       } else {
         matchcount = 0;
+        matchedtiles = [];
       }
       //Match is found
       if(matchcount >= 3) {
-        matches.push({texture:spritearray[i].texture.key,matchx:spritearray[i].body.x,matchy:spritearray[i].body.y,matchcount:matchcount,type:'V'});
+        matchedtiles.push({matchx:spritearray[i+1].body.x,matchy:spritearray[i+1].body.y});
+        matches.push({texture:spritearray[i].texture.key,matchedtiles:matchedtiles,matchcount:matchcount,type:'V'});
         matchcount = 0;
       }
     }
@@ -183,19 +188,31 @@ function update() {
   //console.log(lines);
   //If a match is detected then we need to do something with the blocks
   if(lines.length > 0) {
+    console.log("Lines detected")
     for(var i=0;i<lines.length;i++) {
-      //Deal with vertical
-      if(lines[i].type == 'V') {
-          var x = lines[i].matchx;
-          var top = lines[i].matchy;
-          var bottom = top - (lines[i].matchcount * 60)
-
-          while(top < bottom) {
-            tile = stack.children.entries.filter(child => (child.body.x < x + 10 && child.body.x > x - 10) && (child.body.y < top + 10 && child.body.y > top - 10));
-            console.log(tile);
-            stack.remove(tile);
-            top += 60;
+      for(var j=0;j<lines[i].length;j++) {
+        //Deal with vertical
+        if(lines[i][j].type === 'V') {
+          //console.log(lines[i][j].matchedtiles);
+          for(var k=0;k<lines[i][j].matchedtiles.length;k++) {
+            var currenttile = lines[i][j].matchedtiles[k];
+            var tilefromstack = stack.children.entries.filter(child => (child.body.x == currenttile.matchx && child.body.y == currenttile.matchy));
+            console.log(tilefromstack);
+            tilefromstack.destroy();
+            //stack.remove(tilefromstack);
           }
+            /*
+            var x = lines[i].matchx;
+            var top = lines[i].matchy;
+            var bottom = top - (lines[i].matchcount * 60)
+
+            while(top < bottom) {
+              tile = stack.children.entries.filter(child => (child.body.x < x + 10 && child.body.x > x - 10) && (child.body.y < top + 10 && child.body.y > top - 10));
+              console.log(tile);
+              stack.remove(tile);
+              top += 60;
+            }*/
+        }
       }
     }
   }
