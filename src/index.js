@@ -30,6 +30,7 @@ let stack;
 let cursors;
 let touched = false;
 let touchcount=0;
+let flashingtiles = [];
 
 //Control variables - make local once tested
 let bottomrow;
@@ -74,16 +75,7 @@ function create() {
   stack = this.physics.add.staticGroup();
   //brick.children.entries.forEach(child => stack.create(child.body.x, child.body.y+100,child.texture));
   this.physics.add.collider(brick, stack, tileHitsGroundOrBlock,null,this);
-  console.log(stack);
-  /*
-  this.tweens.add({
-    targets: logo,
-    y: 450,
-    duration: 2000,
-    ease: "Power2",
-    yoyo: true,
-    loop: -1
-  });*/
+
 }
 
 
@@ -197,25 +189,28 @@ function update() {
           for(var k=0;k<lines[i][j].matchedtiles.length;k++) {
             var currenttile = lines[i][j].matchedtiles[k];
             var tilefromstack = stack.children.entries.filter(child => (child.body.x == currenttile.matchx && child.body.y == currenttile.matchy));
-            console.log(tilefromstack);
+            console.log(tilefromstack[0].hasOwnProperty("flash"));
             //var frame = this.physics.scene.textures.getFrame(tilefromstack[0].texture, 'flashtile');
-            //console.log(frame);
-            var graphics = this.add.graphics({
-              x: tilefromstack[0].body.x - tilefromstack[0].body.width / 2,
-              y: tilefromstack[0].body.y - tilefromstack[0].body.height / 2
-            })
-            .fillStyle(0xffff00, 0.75)
-            .setTexture(tilefromstack[0].texture)
-            .fillRect(tilefromstack[0].body.x , tilefromstack[0].body.y, tilefromstack[0].body.width, tilefromstack[0].body.height);
 
-            this.tweens.add({
-              targets: graphics,
-              alpha: 0,
-              ease: 'Cubic.easeOut',
-              duration: 500,
-              repeat: -1,
-              yoyo: true
-            });
+            if(!tilefromstack[0].hasOwnProperty("flash")){
+              console.log("here");
+              var graphics = this.add.graphics({
+                x: tilefromstack[0].body.x,
+                y: tilefromstack[0].body.y
+              })
+              .fillStyle(0xffff00, 0.75)
+              .fillRect(0, 0, tilefromstack[0].body.width, tilefromstack[0].body.height);
+
+              this.tweens.add({
+                targets: graphics,
+                alpha: 0,
+                ease: 'Cubic.easeOut',
+                duration: 500,
+                repeat: -1,
+                yoyo: true
+              });
+              tilefromstack[0].flash = true;
+            }
             //tilefromstack[0].destroy();
             //stack.remove(tilefromstack);
           }
@@ -234,6 +229,9 @@ function update() {
       }
     }
   }
+
+  //Clear the lines variable for performance
+  this.lines = [];
 
   // Configure the controls!
   if (!cursors.down.isDown) {
@@ -348,5 +346,5 @@ function tileHitsGroundOrBlock() {
     console.log(bottomrow);
   }
   //brick.children.each(child => child.body.blocked.left=true);
-  console.log(stack);
+  console.log(this.game.graphics);
 }
