@@ -198,7 +198,25 @@ function update() {
             var currenttile = lines[i][j].matchedtiles[k];
             var tilefromstack = stack.children.entries.filter(child => (child.body.x == currenttile.matchx && child.body.y == currenttile.matchy));
             console.log(tilefromstack);
-            tilefromstack.destroy();
+            //var frame = this.physics.scene.textures.getFrame(tilefromstack[0].texture, 'flashtile');
+            //console.log(frame);
+            var graphics = this.add.graphics({
+              x: tilefromstack[0].body.x - tilefromstack[0].body.width / 2,
+              y: tilefromstack[0].body.y - tilefromstack[0].body.height / 2
+            })
+            .fillStyle(0xffff00, 0.75)
+            .setTexture(tilefromstack[0].texture)
+            .fillRect(tilefromstack[0].body.x , tilefromstack[0].body.y, tilefromstack[0].body.width, tilefromstack[0].body.height);
+
+            this.tweens.add({
+              targets: graphics,
+              alpha: 0,
+              ease: 'Cubic.easeOut',
+              duration: 500,
+              repeat: -1,
+              yoyo: true
+            });
+            //tilefromstack[0].destroy();
             //stack.remove(tilefromstack);
           }
             /*
