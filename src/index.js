@@ -148,6 +148,43 @@ function checkLineofFourY(spritearray) {
   return matches;
 }
 
+
+//Remove the flashing graphics
+function destroyFlashingTile(x,y) {
+  var destroytile = flashingtiles.filter(child => child.x == x && child.y == y);
+  destroytile[0].destroy();
+}
+
+//Sort the stack to take out move tiles down where there are gaps
+function realignStack() {
+  //Iterate through each column
+
+  for (var i = 0; i < 840; i+= 60) {
+    //Get column
+
+    var col = stack.children.entries.filter(child => child.body.x < i + 15 && child.body.x > i )
+
+    //Iterate through gaps
+    for(var j = 520; j > 60; j-= 60) {
+      for(var k = 0; k < col.length; k++) {
+        //if(col.length > 1) {
+          //Check next sprite is not adjacent
+          //if(col[j+1].body.y < col[j].body.y + 65 && col[j+1].body.y > col[j].body.y + 55) {
+          if(!(j + 10 > col[k].body.y && j - 10 < col[k].body.y)) {
+            //Gap detected
+            var gap = j;
+            console.log(gap);
+            //Move tile down
+            //col[j+1].body.x = gap.x;
+            //col[j+1].body.y = gap.y;
+          }
+        //}
+      }
+    }
+  }
+}
+
+
 function update() {
   //Detect line creation
   //HORIZONTAL LINES
@@ -180,7 +217,6 @@ function update() {
   //console.log(lines);
   //If a match is detected then we need to do something with the blocks
   if(lines.length > 0) {
-    console.log("Lines detected")
     for(var i=0;i<lines.length;i++) {
       for(var j=0;j<lines[i].length;j++) {
         //Deal with vertical
@@ -189,17 +225,18 @@ function update() {
           for(var k=0;k<lines[i][j].matchedtiles.length;k++) {
             var currenttile = lines[i][j].matchedtiles[k];
             var tilefromstack = stack.children.entries.filter(child => (child.body.x == currenttile.matchx && child.body.y == currenttile.matchy));
-            console.log(tilefromstack[0].hasOwnProperty("flash"));
             //var frame = this.physics.scene.textures.getFrame(tilefromstack[0].texture, 'flashtile');
 
             if(!tilefromstack[0].hasOwnProperty("flash")){
-              console.log("here");
               var graphics = this.add.graphics({
                 x: tilefromstack[0].body.x,
                 y: tilefromstack[0].body.y
               })
               .fillStyle(0xffff00, 0.75)
               .fillRect(0, 0, tilefromstack[0].body.width, tilefromstack[0].body.height);
+
+              //For tracking
+              flashingtiles.push(graphics);
 
               this.tweens.add({
                 targets: graphics,
@@ -210,7 +247,20 @@ function update() {
                 yoyo: true
               });
               tilefromstack[0].flash = true;
+              tilefromstack[0].flashcount = 0;
+            } else {
+              tilefromstack[0].flashcount++;
             }
+
+            //Destroy if aged out
+            if(tilefromstack[0].hasOwnProperty("flashcount")) {
+              if(tilefromstack[0].flashcount >= 50) {
+                console.log(flashingtiles);
+                //destroyFlashingTile(tilefromstack[0].body.x,tilefromstack[0].body.y);
+                //tilefromstack[0].destroy();
+              }
+            }
+
             //tilefromstack[0].destroy();
             //stack.remove(tilefromstack);
           }
@@ -232,6 +282,7 @@ function update() {
 
   //Clear the lines variable for performance
   this.lines = [];
+  realignStack();
 
   // Configure the controls!
   if (!cursors.down.isDown) {
