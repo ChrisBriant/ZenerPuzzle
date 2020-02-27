@@ -163,23 +163,37 @@ function realignStack() {
     //Get column
 
     var col = stack.children.entries.filter(child => child.body.x < i + 15 && child.body.x > i )
+    col.sort(function(a, b){return b.body.y - a.body.y});
 
+    //Set the current column
+    var currcol = 0;
+    var end = false;
     //Iterate through gaps
     for(var j = 520; j > 60; j-= 60) {
-      for(var k = 0; k < col.length; k++) {
-        //if(col.length > 1) {
+        if(col.length > 0 && !end) {
           //Check next sprite is not adjacent
           //if(col[j+1].body.y < col[j].body.y + 65 && col[j+1].body.y > col[j].body.y + 55) {
-          if(!(j + 10 > col[k].body.y && j - 10 < col[k].body.y)) {
+          if(!(j + 15 > col[currcol].body.y && j - 15 < col[currcol].body.y)) {
             //Gap detected
             var gap = j;
             console.log(gap);
+            //Move block into gap
+            stack.create(col[currcol].body.x + 30, j + 30,col[currcol].texture)
+            col[currcol].destroy();
+            //col[currcol].body.y = j;
+            //stack.add(newsprite);
+            currcol++;
             //Move tile down
             //col[j+1].body.x = gap.x;
             //col[j+1].body.y = gap.y;
+          } else {
+            currcol++;
           }
-        //}
-      }
+          //Control
+          if(currcol == col.length) {
+            end = true;
+          }
+        }
     }
   }
 }
@@ -256,8 +270,8 @@ function update() {
             if(tilefromstack[0].hasOwnProperty("flashcount")) {
               if(tilefromstack[0].flashcount >= 50) {
                 console.log(flashingtiles);
-                //destroyFlashingTile(tilefromstack[0].body.x,tilefromstack[0].body.y);
-                //tilefromstack[0].destroy();
+                destroyFlashingTile(tilefromstack[0].body.x,tilefromstack[0].body.y);
+                tilefromstack[0].destroy();
               }
             }
 
@@ -397,5 +411,4 @@ function tileHitsGroundOrBlock() {
     console.log(bottomrow);
   }
   //brick.children.each(child => child.body.blocked.left=true);
-  console.log(this.game.graphics);
 }
