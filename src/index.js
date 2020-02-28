@@ -31,6 +31,7 @@ let cursors;
 let touched = false;
 let touchcount=0;
 let flashingtiles = [];
+let flashing = false;
 
 //Control variables - make local once tested
 let bottomrow;
@@ -90,6 +91,7 @@ function checkInsideSprite(x,y,sprite) {
 
 function checkLineofFourX(spritearray) {
   var matchcount = 0;
+  var matchedtiles = [];
   var matches = [];
 
   for(var i = 0; i < spritearray.length; i++) {
@@ -101,13 +103,16 @@ function checkLineofFourX(spritearray) {
             matchcount++;
         } else {
           matchcount = 0;
+          matchedtiles = [];
         }
       } else {
         matchcount = 0;
+        matchedtiles = [];
       }
       //Match is found
       if(matchcount >= 3) {
-        matches.push(spritearray[i].texture.key);
+        matchedtiles.push({matchx:spritearray[i+1].body.x,matchy:spritearray[i+1].body.y});
+        matches.push({texture:spritearray[i].texture.key,matchedtiles:matchedtiles,matchcount:matchcount,type:'V'});
         matchcount = 0;
       }
     }
@@ -178,7 +183,8 @@ function realignStack() {
             var gap = j;
             console.log(gap);
             //Move block into gap
-            stack.create(col[currcol].body.x + 30, j + 30,col[currcol].texture)
+            //stack.create(col[currcol].body.x + 29, j + 20,col[currcol].texture);
+            stack.create(col[currcol].body.x + 30, (Math.floor(col[currcol].body.y / 60) * 60) + 120,col[currcol].texture)
             col[currcol].destroy();
             //col[currcol].body.y = j;
             //stack.add(newsprite);
@@ -212,7 +218,6 @@ function update() {
     lineoffour = checkLineofFourX(row); //Check matches
     if(lineoffour.length > 0) {
       lines.push(lineoffour);
-      //console.log(lineoffour);
     }
   }
   //VERTICAL LINES
@@ -272,23 +277,60 @@ function update() {
                 console.log(flashingtiles);
                 destroyFlashingTile(tilefromstack[0].body.x,tilefromstack[0].body.y);
                 tilefromstack[0].destroy();
+                flashing = false;
+              } else {
+                //So game can pause while the score is added
+                flashing = true;
               }
             }
-
-            //tilefromstack[0].destroy();
-            //stack.remove(tilefromstack);
           }
-            /*
-            var x = lines[i].matchx;
-            var top = lines[i].matchy;
-            var bottom = top - (lines[i].matchcount * 60)
+        } else {
+          //Horrizontal
 
-            while(top < bottom) {
-              tile = stack.children.entries.filter(child => (child.body.x < x + 10 && child.body.x > x - 10) && (child.body.y < top + 10 && child.body.y > top - 10));
-              console.log(tile);
-              stack.remove(tile);
-              top += 60;
-            }*/
+          for(var k=0;k<lines[i][j].matchedtiles.length;k++) {
+            var currenttile = lines[i][j].matchedtiles[k];
+            var tilefromstack = stack.children.entries.filter(child => (child.body.x == currenttile.matchx && child.body.y == currenttile.matchy));
+            //var frame = this.physics.scene.textures.getFrame(tilefromstack[0].texture, 'flashtile');
+
+            if(!tilefromstack[0].hasOwnProperty("flash")){
+              var graphics = this.add.graphics({
+                x: tilefromstack[0].body.x,
+                y: tilefromstack[0].body.y
+              })
+              .fillStyle(0xffff00, 0.75)
+              .fillRect(0, 0, tilefromstack[0].body.width, tilefromstack[0].body.height);
+
+              //For tracking
+              flashingtiles.push(graphics);
+
+              this.tweens.add({
+                targets: graphics,
+                alpha: 0,
+                ease: 'Cubic.easeOut',
+                duration: 500,
+                repeat: -1,
+                yoyo: true
+              });
+              tilefromstack[0].flash = true;
+              tilefromstack[0].flashcount = 0;
+            } else {
+              tilefromstack[0].flashcount++;
+            }
+
+            //Destroy if aged out
+            if(tilefromstack[0].hasOwnProperty("flashcount")) {
+              if(tilefromstack[0].flashcount >= 50) {
+                console.log(flashingtiles);
+                destroyFlashingTile(tilefromstack[0].body.x,tilefromstack[0].body.y);
+                tilefromstack[0].destroy();
+                flashing = false;
+              } else {
+                //So game can pause while the score is added
+                flashing = true;
+              }
+            }
+          }
+
         }
       }
     }
@@ -298,84 +340,86 @@ function update() {
   this.lines = [];
   realignStack();
 
-  // Configure the controls!
-  if (!cursors.down.isDown) {
-    if(touchcount > 0) {
-      touchcount -= 1;
-    }
-    touched = false;
-    //brick.children.forEach(child => child.setVelocityY(80));
-    brick.setVelocityY(80);
-    //// REVIEW: Line nleow not sure if the "!this.pysics.overlap" is needed
-    if(cursors.left.isDown && touchcount == 0 && !this.physics.overlap(brick,stack)) {
-      //Add a blank sprite to the left and check collides with stack
-      var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y + 30);
-      if(!this.physics.overlap(checksprite, stack)) {
-        brick.children.entries.forEach(child => child.body.x -= 61);
+  if(!flashing) {
+    // Configure the controls!
+    if (!cursors.down.isDown) {
+      if(touchcount > 0) {
+        touchcount -= 1;
       }
-      checksprite.destroy();
-      touched = true;
-      touchcount = 10;
-    } else if (cursors.right.isDown && touchcount == 0) {
-      //Add a blank sprite to the left and check collides with stack
-      var checksprite = this.physics.add.sprite(brick.children.entries[1].body.x + 60,brick.children.entries[0].body.y + 30);
-      if(!this.physics.overlap(checksprite, stack)) {
-        brick.children.entries.forEach(child => child.body.x += 61);
+      touched = false;
+      //brick.children.forEach(child => child.setVelocityY(80));
+      brick.setVelocityY(80);
+      //// REVIEW: Line nleow not sure if the "!this.pysics.overlap" is needed
+      if(cursors.left.isDown && touchcount == 0 && !this.physics.overlap(brick,stack)) {
+        //Add a blank sprite to the left and check collides with stack
+        var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y + 30);
+        if(!this.physics.overlap(checksprite, stack)) {
+          brick.children.entries.forEach(child => child.body.x -= 61);
+        }
+        checksprite.destroy();
+        touched = true;
+        touchcount = 10;
+      } else if (cursors.right.isDown && touchcount == 0) {
+        //Add a blank sprite to the left and check collides with stack
+        var checksprite = this.physics.add.sprite(brick.children.entries[1].body.x + 60,brick.children.entries[0].body.y + 30);
+        if(!this.physics.overlap(checksprite, stack)) {
+          brick.children.entries.forEach(child => child.body.x += 61);
+        }
+        checksprite.destroy();
+        touched = true;
+        touchcount = 10;
+      } else if (cursors.space.isDown && touchcount == 0) {
+        //Handle rotation
+        if(brick.children.entries[1].body.x > brick.children.entries[0].body.x + 5 && brick.children.entries[1].body.x > brick.children.entries[0].body.x - 5) {
+          //Brick is horrizontally alligned so move to vertical orientation
+          console.log("Horizontal left");
+          //Check not blocked
+          var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x + 60,brick.children.entries[0].body.y - 60,'tile1');
+          if(!this.physics.overlap(checksprite, stack)) {
+            brick.children.entries[0].body.x += 60;
+            brick.children.entries[0].body.y -= 60;
+          }
+        } else if(brick.children.entries[0].body.x > brick.children.entries[1].body.x + 5 && brick.children.entries[0].body.x > brick.children.entries[1].body.x - 5) {
+          //Brick is horizontally alligned with first brick on right
+          console.log("Horizontal right");
+          var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y + 60,'tile1');
+          if(!this.physics.overlap(checksprite, stack)) {
+            brick.children.entries[0].body.x -= 60;
+            brick.children.entries[0].body.y += 60;
+          }
+        } else if (brick.children.entries[1].body.y > brick.children.entries[0].body.y + 5 && brick.children.entries[1].body.y > brick.children.entries[0].body.y - 5) {
+          //Brick is orientated vertically and first brick is on top so rotate to horizontal position
+          console.log("Virtical top");
+          var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x + 60,brick.children.entries[0].body.y + 60,'tile1');
+          if(!this.physics.overlap(checksprite, stack)) {
+            brick.children.entries[0].body.x += 60;
+            brick.children.entries[0].body.y += 60;
+          }
+        } else if (brick.children.entries[0].body.y > brick.children.entries[1].body.y + 5 && brick.children.entries[0].body.y > brick.children.entries[1].body.y - 5) {
+          //Brick is orientated vertically and first brick is on bottom so rotate to horizontal position
+          console.log("Virtical bottom");
+          var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y - 60,'tile1');
+          if(!this.physics.overlap(checksprite, stack)) {
+            brick.children.entries[0].body.x -= 60;
+            brick.children.entries[0].body.y -= 60;
+          }
+        }
+        checksprite.destroy();
+        touched = true;
+        touchcount = 10;
+      } else {
+        brick.setVelocityX(0);
       }
-      checksprite.destroy();
-      touched = true;
-      touchcount = 10;
-    } else if (cursors.space.isDown && touchcount == 0) {
-      //Handle rotation
-      if(brick.children.entries[1].body.x > brick.children.entries[0].body.x + 5 && brick.children.entries[1].body.x > brick.children.entries[0].body.x - 5) {
-        //Brick is horrizontally alligned so move to vertical orientation
-        console.log("Horizontal left");
-        //Check not blocked
-        var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x + 60,brick.children.entries[0].body.y - 60,'tile1');
-        if(!this.physics.overlap(checksprite, stack)) {
-          brick.children.entries[0].body.x += 60;
-          brick.children.entries[0].body.y -= 60;
-        }
-      } else if(brick.children.entries[0].body.x > brick.children.entries[1].body.x + 5 && brick.children.entries[0].body.x > brick.children.entries[1].body.x - 5) {
-        //Brick is horizontally alligned with first brick on right
-        console.log("Horizontal right");
-        var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y + 60,'tile1');
-        if(!this.physics.overlap(checksprite, stack)) {
-          brick.children.entries[0].body.x -= 60;
-          brick.children.entries[0].body.y += 60;
-        }
-      } else if (brick.children.entries[1].body.y > brick.children.entries[0].body.y + 5 && brick.children.entries[1].body.y > brick.children.entries[0].body.y - 5) {
-        //Brick is orientated vertically and first brick is on top so rotate to horizontal position
-        console.log("Virtical top");
-        var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x + 60,brick.children.entries[0].body.y + 60,'tile1');
-        if(!this.physics.overlap(checksprite, stack)) {
-          brick.children.entries[0].body.x += 60;
-          brick.children.entries[0].body.y += 60;
-        }
-      } else if (brick.children.entries[0].body.y > brick.children.entries[1].body.y + 5 && brick.children.entries[0].body.y > brick.children.entries[1].body.y - 5) {
-        //Brick is orientated vertically and first brick is on bottom so rotate to horizontal position
-        console.log("Virtical bottom");
-        var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y - 60,'tile1');
-        if(!this.physics.overlap(checksprite, stack)) {
-          brick.children.entries[0].body.x -= 60;
-          brick.children.entries[0].body.y -= 60;
-        }
-      }
-      checksprite.destroy();
-      touched = true;
-      touchcount = 10;
     } else {
-      brick.setVelocityX(0);
+      //brick.children.forEach(child => child.setVelocityY(300));
+      brick.setVelocityY(300);
     }
-  } else {
-    //brick.children.forEach(child => child.setVelocityY(300));
-    brick.setVelocityY(300);
-  }
+  } else { brick.setVelocityY(0); }
 }
 
 function tileHitsGroundOrBlock() {
   //console.log(lines);
-  //lineoffour = checkLineofFour(bottomrow);
+  //lineoffour = checkLineofFourX(bottomrow);
   //console.log(lineoffour);
 
   //console.log(brick);
@@ -392,7 +436,13 @@ function tileHitsGroundOrBlock() {
     //children[i].destroy();
     brick.remove(children[i],true,true);
   }*/
-  brick.children.each(child => stack.create(child.body.x + 30, child.body.y+ 30,child.texture));
+  if(!(brick.children.entries[0].body.x >= brick.children.entries[1].body.x - 10 && brick.children.entries[0].body.x <= brick.children.entries[1].body.x + 10)) {
+     //horizontal orientated
+     var brick1y = brick.children.entries[0].body.y;
+     brick.children.each(child => stack.create(child.body.x + 30, brick1y + 30,child.texture));
+   } else {
+     brick.children.each(child => stack.create(child.body.x + 30, child.body.y + 30,child.texture));
+   }
   brick.children.each(child => child.destroy());
   //var children = brick.getChildren();
   brick.clear();
@@ -410,5 +460,6 @@ function tileHitsGroundOrBlock() {
   } else {
     console.log(bottomrow);
   }
+  console.log(bottomrow);
   //brick.children.each(child => child.body.blocked.left=true);
 }
