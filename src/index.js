@@ -88,6 +88,31 @@ function checkInsideSprite(x,y,sprite) {
     return false;
   }
 }*/
+function adjacent(sprite1,sprite2,axis) {
+  if (axis === 'Y') {
+    if(sprite2.body.y < sprite1.body.y + 65 && sprite2.body.y > sprite1.body.y + 55) {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    //Fill in for x axis
+  }
+}
+
+function tilesmatch(sprite1,sprite2,axis) {
+  if(axis === 'Y') {
+    console.log("TEXTURES");
+    if(sprite2.texture.key === sprite1.texture.key) {
+      console.log("MATCH");
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+      //Fill in for x axis
+  }
+}
 
 function checkLineofFourX(spritearray) {
   var matchcount = 0;
@@ -101,6 +126,7 @@ function checkLineofFourX(spritearray) {
         //Check texture is the same
         if(spritearray[i+1].texture.key === spritearray[i].texture.key) {
             matchcount++;
+            matchedtiles.push({matchx:spritearray[i].body.x,matchy:spritearray[i].body.y});
         } else {
           matchcount = 0;
           matchedtiles = [];
@@ -142,11 +168,16 @@ function checkLineofFourY(spritearray) {
         matchcount = 0;
         matchedtiles = [];
       }
-      //Match is found
+      //Match is found 4 or more
+      //&& adjacent(spritearray[i],spritearray[i+1],"Y")
       if(matchcount >= 3) {
+        console.log(!tilesmatch(spritearray[i],spritearray[i+1],"Y"));
         matchedtiles.push({matchx:spritearray[i+1].body.x,matchy:spritearray[i+1].body.y});
         matches.push({texture:spritearray[i].texture.key,matchedtiles:matchedtiles,matchcount:matchcount,type:'V'});
         matchcount = 0;
+      } else {
+        //matchcount++;
+        //matchedtiles.push({matchx:spritearray[i].body.x,matchy:spritearray[i].body.y});
       }
     }
   }
@@ -229,7 +260,8 @@ function update() {
     lineoffour = checkLineofFourY(col); //Check matches
     if(lineoffour.length > 0) {
       lines.push(lineoffour);
-      //console.log(lineoffour);
+      console.log("Matchtiles");
+      console.log(lineoffour);
     }
   }
 
