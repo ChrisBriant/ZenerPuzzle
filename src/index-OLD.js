@@ -114,55 +114,6 @@ function tilesmatch(sprite1,sprite2,axis) {
   }
 }
 
-function consolidateTilesX(tiles) {
-  if(tiles.length > 0) {
-    var block = [];
-
-    for(var i=0;i<tiles.length;i++) {
-      for(var j=0;j<tiles[i].matchedtiles.length;j++) {
-        block.push(tiles[i].matchedtiles[j].matchx);
-      }
-    }
-
-    console.log("finished consolodation");
-    console.log(block);
-    var blockunique = Array.from(new Set(block));
-    var blockuniquewithy = [];
-    for(var i = 0;i<blockunique.length;i++) {
-      console.log(i);
-      blockuniquewithy.push({matchx:blockunique[i],matchy:tiles[0].matchedtiles[0].matchy});
-    }
-    var newmatches = [];
-    newmatches.push({texture:tiles[0].texture,matchedtiles:blockuniquewithy,type:'H'});
-    return newmatches;
-  } else {
-    return [];
-  }
-}
-
-
-function consolidateTilesY(tiles) {
-  if(tiles.length > 0) {
-    var block = [];
-
-    for(var i=0;i<tiles.length;i++) {
-      for(var j=0;j<tiles[i].matchedtiles.length;j++) {
-        block.push(tiles[i].matchedtiles[j].matchy);
-      }
-    }
-    var blockunique = Array.from(new Set(block));
-    var blockuniquewithy = [];
-    for(var i = 0;i<blockunique.length;i++) {
-      blockuniquewithy.push({matchx:tiles[0].matchedtiles[0].matchy,matchy:blockunique[i]});
-    }
-    var newmatches = [];
-    newmatches.push({texture:tiles[0].texture,matchedtiles:blockuniquewithy,type:'V'});
-    return newmatches;
-  } else {
-    return [];
-  }
-}
-
 function checkLineofFourX(spritearray) {
   var matchcount = 0;
   var matchedtiles = [];
@@ -186,14 +137,13 @@ function checkLineofFourX(spritearray) {
       }
       //Match is found
       if(matchcount >= 3) {
-        var matchingrow = [...matchedtiles];
-        matchingrow.push({matchx:spritearray[i+1].body.x,matchy:spritearray[i+1].body.y});
-        matches.push({texture:spritearray[i].texture.key,matchedtiles:matchingrow,matchcount:matchcount,type:'V'});
+        matchedtiles.push({matchx:spritearray[i+1].body.x,matchy:spritearray[i+1].body.y});
+        matches.push({texture:spritearray[i].texture.key,matchedtiles:matchedtiles,matchcount:matchcount,type:'V'});
+        matchcount = 0;
       }
     }
   }
-  var consolodatedtiles = consolidateTilesX(matches);
-  return consolodatedtiles;
+  return matches;
 }
 
 
@@ -201,7 +151,7 @@ function checkLineofFourY(spritearray) {
   var matchcount = 0;
   var matchedtiles = [];
   var matches = [];
-  var matched = false;
+  var morethan4 = false;
 
   for(var i = 0; i < spritearray.length; i++) {
 
@@ -220,20 +170,34 @@ function checkLineofFourY(spritearray) {
         matchcount = 0;
         matchedtiles = [];
       }
-      //Match is found
-      if(matchcount >= 3) {
-        var matchingrow = [...matchedtiles];
-        matchingrow.push({matchx:spritearray[i+1].body.x,matchy:spritearray[i+1].body.y});
-        matches.push({texture:spritearray[i].texture.key,matchedtiles:matchingrow,matchcount:matchcount,type:'V'});
+      //Match is found 4 or more
+      //&& adjacent(spritearray[i],spritearray[i+1],"Y")
+      console.log(morethan4);
+      console.log(matchcount);
+      if(matchcount >= 3 && !morethan4) {
+        morethan4 = true;
+        //console.log(!tilesmatch(spritearray[i],spritearray[i+1],"Y"));
+      } else if (matchcount >= 3 && morethan4)  {
+        console.log("endofline");
+        //matchedtiles.push({matchx:spritearray[i+1].body.x,matchy:spritearray[i+1].body.y});
+        //matches.push({texture:spritearray[i].texture.key,matchedtiles:matchedtiles,matchcount:matchcount,type:'V'});
+        //matchedtiles = [];
+        //matchcount = 0;
+        //matchcount++;
+        //matchedtiles.push({matchx:spritearray[i].body.x,matchy:spritearray[i].body.y});
+      }
+    } else {
+      console.log("END OF");
+      console.log(matchedtiles);
+      if(matchedtiles.length > 2 && morethan4) {
+        alert("Huere");
+        matchedtiles.push({matchx:spritearray[i].body.x,matchy:spritearray[i].body.y});
+        matches.push({texture:spritearray[i].texture.key,matchedtiles:matchedtiles,matchcount:matchcount,type:'V'});
+        //matchedtiles = [];
       }
     }
   }
-  if(matches.length > 0) {
-    console.log(matches);
-    alert("Match");
-  }
-  var consolodatedtiles = consolidateTilesY(matches);
-  return consolodatedtiles;
+  return matches;
 }
 
 
@@ -329,12 +293,7 @@ function update() {
             var currenttile = lines[i][j].matchedtiles[k];
             var tilefromstack = stack.children.entries.filter(child => (child.body.x == currenttile.matchx && child.body.y == currenttile.matchy));
             //var frame = this.physics.scene.textures.getFrame(tilefromstack[0].texture, 'flashtile');
-            if(typeof tilefromstack[0] === undefined) {
-                console.log("undefined");
-            }
 
-            console.log("Tiles from Stack");
-            console.log(tilefromstack);
             if(!tilefromstack[0].hasOwnProperty("flash")){
               var graphics = this.add.graphics({
                 x: tilefromstack[0].body.x,
@@ -525,22 +484,14 @@ function tileHitsGroundOrBlock() {
     //children[i].destroy();
     brick.remove(children[i],true,true);
   }*/
-  /*
   if(!(brick.children.entries[0].body.x >= brick.children.entries[1].body.x - 10 && brick.children.entries[0].body.x <= brick.children.entries[1].body.x + 10)) {
      //horizontal orientated
      var brick1y = brick.children.entries[0].body.y;
-     //brick.children.each(child => stack.create(child.body.x + 30, brick1y + 30,child.texture));
-     brick.children.each(child => stack.create(child.body.x + 30, (Math.floor(brick1y.body.y / 60) * 60) + 120,child.texture));
+     brick.children.each(child => stack.create(child.body.x + 30, brick1y + 30,child.texture));
    } else {
-     //brick.children.each(child => stack.create(child.body.x + 30, child.body.y + 30,child.texture));
-     brick.children.each(child => stack.create(child.body.x + 30, (Math.floor(child.body.y / 60) * 60) + 120,child.texture));
-   }*/
-
-  brick.children.each(child => stack.create((Math.round(child.body.x / 60) * 60)+ 30, Math.round(child.body.y / 60) * 60,child.texture));
-  console.log(stack);
-  console.log(brick);
+     brick.children.each(child => stack.create(child.body.x + 30, child.body.y + 30,child.texture));
+   }
   brick.children.each(child => child.destroy());
-  alert("Putting down");
   //var children = brick.getChildren();
   brick.clear();
   if(topofstack.length == 0) {
@@ -549,10 +500,8 @@ function tileHitsGroundOrBlock() {
     //children.entries.forEach(child => console.log(child));
     //stack.create(300,100, 'ground');
     //let brick = this.physics.add.group();
-    //brick.create((this.game.config.width / 2) - 60, 0, 'tile'+randomNumber(1,6));
-    //brick.create(this.game.config.width / 2, 0, 'tile'+randomNumber(1,6));
-    brick.create(360, 0, 'tile'+randomNumber(1,6));
-    brick.create(420, 0, 'tile'+randomNumber(1,6));
+    brick.create((this.game.config.width / 2) - 60, 0, 'tile'+randomNumber(1,6));
+    brick.create(this.game.config.width / 2, 0, 'tile'+randomNumber(1,6));
     //console.log("Here");
     //ground.body.setAllowGravity(false);
     //ground.setVelocityY(0);
