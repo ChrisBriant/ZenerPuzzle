@@ -65,8 +65,11 @@ function create() {
   //brick.create(this.game.config.width / 2, 0, 'tile'+randomNumber(1,6));
   brick.create(360, 0, 'tile'+randomNumber(1,6));
   brick.create(420, 0, 'tile'+randomNumber(1,6));
+  console.log(brick);
+
   //brick.children.each(child => child.body.checkCollision.left = false);
   //brick.children.each(child => child.body.checkCollision.right = false);
+  brick.children.each(child => child.body.setSize(58,60,29));
   //brick.children.each(child => child.body.blocked.left=true);
   //Add the floor
   //ground = this.physics.add.sprite(300,this.game.config.height / 2 - 100, 'ground');
@@ -157,7 +160,7 @@ function consolidateTilesY(tiles) {
     var blockunique = Array.from(new Set(block));
     var blockuniquewithy = [];
     for(var i = 0;i<blockunique.length;i++) {
-      blockuniquewithy.push({matchx:tiles[0].matchedtiles[0].matchy,matchy:blockunique[i]});
+      blockuniquewithy.push({matchx:tiles[0].matchedtiles[0].matchx,matchy:blockunique[i]});
     }
     var newmatches = [];
     newmatches.push({texture:tiles[0].texture,matchedtiles:blockuniquewithy,type:'V'});
@@ -175,7 +178,7 @@ function checkLineofFourX(spritearray) {
   for(var i = 0; i < spritearray.length; i++) {
     if(i + 1 < spritearray.length) {
       //Check next sprite is adjacent
-      if(spritearray[i+1].body.x < spritearray[i].body.x + 65 && spritearray[i+1].body.x > spritearray[i].body.x + 55) {
+      if(spritearray[i+1].body.x <= spritearray[i].body.x + 65 && spritearray[i+1].body.x >= spritearray[i].body.x + 55) {
         //Check texture is the same
         if(spritearray[i+1].texture.key === spritearray[i].texture.key) {
             matchcount++;
@@ -211,11 +214,12 @@ function checkLineofFourY(spritearray) {
 
     if(i + 1 < spritearray.length) {
       //Check next sprite is adjacent
-      if(spritearray[i+1].body.y < spritearray[i].body.y + 65 && spritearray[i+1].body.y > spritearray[i].body.y + 55) {
+      //if(spritearray[i+1].body.y <= spritearray[i].body.y + 65 && spritearray[i+1].body.y >= spritearray[i].body.y + 55) {
+      if(spritearray[i+1].y == spritearray[i].y + 60) {
         //Check texture is the same
         if(spritearray[i+1].texture.key === spritearray[i].texture.key) {
             matchcount++;
-            matchedtiles.push({matchx:spritearray[i].body.x,matchy:spritearray[i].body.y});
+            matchedtiles.push({matchx:spritearray[i].x,matchy:spritearray[i].y});
         } else {
           matchcount = 0;
           matchedtiles = [];
@@ -233,10 +237,15 @@ function checkLineofFourY(spritearray) {
     }
   }
   if(matches.length > 0) {
+    console.log("MATCH");
+    console.log(spritearray);
     console.log(matches);
+    var consolodatedtiles = consolidateTilesY(matches);
+    console.log(consolodatedtiles);
     alert("Match");
+  } else {
+    consolodatedtiles = [];
   }
-  var consolodatedtiles = consolidateTilesY(matches);
   return consolodatedtiles;
 }
 
@@ -253,10 +262,8 @@ function realignStack() {
 
   for (var i = 0; i < 840; i+= 60) {
     //Get column
-
-    var col = stack.children.entries.filter(child => child.body.x < i + 15 && child.body.x > i )
+    var col = stack.children.entries.filter(child => child.x == i)
     col.sort(function(a, b){return b.body.y - a.body.y});
-
     //Set the current column
     var currcol = 0;
     var end = false;
@@ -264,21 +271,17 @@ function realignStack() {
     for(var j = 520; j > 60; j-= 60) {
         if(col.length > 0 && !end) {
           //Check next sprite is not adjacent
-          //if(col[j+1].body.y < col[j].body.y + 65 && col[j+1].body.y > col[j].body.y + 55) {
-          if(!(j + 15 > col[currcol].body.y && j - 15 < col[currcol].body.y)) {
+          if(!(j + 15 >= col[currcol].body.y && j - 15 <= col[currcol].body.y)) {
             //Gap detected
             var gap = j;
             console.log(gap);
             //Move block into gap
             //stack.create(col[currcol].body.x + 29, j + 20,col[currcol].texture);
-            stack.create(col[currcol].body.x + 30, (Math.floor(col[currcol].body.y / 60) * 60) + 120,col[currcol].texture)
+            stack.create((Math.round(col[currcol].body.x / 60) * 60), ((Math.round((col[currcol].body.y+1) / 60)) * 60)+60,col[currcol].texture);
+            //stack.create(col[currcol].body.x + 30, (Math.floor(col[currcol].body.y / 60) * 60) + 120,col[currcol].texture)
             col[currcol].destroy();
-            //col[currcol].body.y = j;
-            //stack.add(newsprite);
             currcol++;
             //Move tile down
-            //col[j+1].body.x = gap.x;
-            //col[j+1].body.y = gap.y;
           } else {
             currcol++;
           }
@@ -300,7 +303,8 @@ function update() {
 
   for (var i = 520; i > 70; i-= 60) {
     //Get row and sort
-    var row = stack.children.entries.filter(child => child.body.y < i && child.body.y > i - 15 );
+    //var row = stack.children.entries.filter(child => child.body.y < i && child.body.y > i - 15 );
+    var row = stack.children.entries.filter(child => child.y == i );
     row.sort(function(a, b){return a.body.x - b.body.x});
     lineoffour = checkLineofFourX(row); //Check matches
     if(lineoffour.length > 0) {
@@ -311,7 +315,8 @@ function update() {
   //Iterate through each column
   for (var i = 0; i < 840; i+= 60) {
     //Get row and sort
-    var col = stack.children.entries.filter(child => child.body.x < i + 15 && child.body.x > i );
+    //var col = stack.children.entries.filter(child => child.body.x < i + 15 && child.body.x > i );
+    var col = stack.children.entries.filter(child => child.x == i );
     col.sort(function(a, b){return a.body.y - b.body.y});
     lineoffour = checkLineofFourY(col); //Check matches
     if(lineoffour.length > 0) {
@@ -331,13 +336,15 @@ function update() {
           //console.log(lines[i][j].matchedtiles);
           for(var k=0;k<lines[i][j].matchedtiles.length;k++) {
             var currenttile = lines[i][j].matchedtiles[k];
-            var tilefromstack = stack.children.entries.filter(child => (child.body.x == currenttile.matchx && child.body.y == currenttile.matchy));
+            var tilefromstack = stack.children.entries.filter(child => (child.x == currenttile.matchx && child.y == currenttile.matchy));
             //var frame = this.physics.scene.textures.getFrame(tilefromstack[0].texture, 'flashtile');
             if(typeof tilefromstack[0] === undefined) {
                 console.log("undefined");
             }
 
             console.log("Tiles from Stack");
+            console.log(stack);
+            console.log(currenttile);
             console.log(tilefromstack);
             if(!tilefromstack[0].hasOwnProperty("flash")){
               var graphics = this.add.graphics({
@@ -431,7 +438,7 @@ function update() {
 
   //Clear the lines variable for performance
   this.lines = [];
-  //realignStack();
+  realignStack();
 
   if(!flashing) {
     // Configure the controls!
@@ -543,13 +550,11 @@ function tileHitsGroundOrBlock() {
    //CHECK HERE
    //https://rexrainbow.github.io/phaser3-rex-notes/docs/site/arcade-body/#collision-bound
 
-  brick.children.each(child => stack.create(((Math.round(child.body.x / 60) * 60)), Math.round(child.body.y / 60) * 60,child.texture));
-  stack.children.each(child => child.body.checkCollision.left = false);
-  stack.children.each(child => child.body.checkCollision.right = false);
+  brick.children.each(child => stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y+1) / 60) * 60,child.texture));
+  //stack.children.each(child => child.body.checkCollision.right = false);
   console.log(stack);
   console.log(brick.children.entries[0].body.touching);
   brick.children.each(child => child.destroy());
-  alert("Putting down");
   //var children = brick.getChildren();
   brick.clear();
   if(topofstack.length == 0) {
@@ -562,14 +567,13 @@ function tileHitsGroundOrBlock() {
     //brick.create(this.game.config.width / 2, 0, 'tile'+randomNumber(1,6));
     brick.create(360, 0, 'tile'+randomNumber(1,6));
     brick.create(420, 0, 'tile'+randomNumber(1,6));
-    brick.children.each(child => child.body.checkCollision.left = false);
-    brick.children.each(child => child.body.checkCollision.right = false);
+    //brick.children.each(child => child.body.checkCollision.left = false);
+    //brick.children.each(child => child.body.checkCollision.right = false);
+    brick.children.each(child => child.body.setSize(58,60,29));
     //console.log("Here");
     //ground.body.setAllowGravity(false);
     //ground.setVelocityY(0);
   } else {
     console.log(bottomrow);
   }
-  console.log(bottomrow);
-  //brick.children.each(child => child.body.blocked.left=true);
 }
