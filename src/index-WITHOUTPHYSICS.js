@@ -6,13 +6,6 @@ import {randomNumber} from './include.js';
 const config = {
   type: Phaser.AUTO,
   parent: "phaser-example",
-  physics: {
-    default: 'arcade',
-    arcade: {
-        gravity: { y: 300, x:1 },
-        debug: false
-    }
-  },
   width: 800,
   height: 600,
   scene: {
@@ -58,65 +51,37 @@ function create() {
 
 
   cursors = this.input.keyboard.createCursorKeys();
-  brick = this.physics.add.group();
-  brick.setVelocityY(80);
-  brick.setVelocityX(0);
-  //brick.create((this.game.config.width / 2) - 60, 0, 'tile'+randomNumber(1,6));
-  //brick.create(this.game.config.width / 2, 0, 'tile'+randomNumber(1,6));
-  brick.create(360, 0, 'tile'+randomNumber(1,6));
-  brick.create(420, 0, 'tile'+randomNumber(1,6));
-  //brick.children.each(child => child.body.checkCollision.left = false);
-  //brick.children.each(child => child.body.checkCollision.right = false);
+  brick = this.add.group();
+  brick.create((this.game.config.width / 2) - 60, 0, 'tile'+randomNumber(1,6));
+  brick.create(this.game.config.width / 2, 0, 'tile'+randomNumber(1,6));
   //brick.children.each(child => child.body.blocked.left=true);
   //Add the floor
   //ground = this.physics.add.sprite(300,this.game.config.height / 2 - 100, 'ground');
-  ground = this.physics.add.staticGroup();
+  ground = this.add.group();
   //ground.create(300,500, 'ground');
   var floor = this.add.tileSprite(400, 585, 800, 30, "block30x30");
   ground.add(floor);
   //ground.body.setAllowGravity(false);
-  this.physics.add.collider(brick, ground, tileHitsGroundOrBlock,null,this);
+  //this.add.collider(brick, ground, tileHitsGroundOrBlock,null,this);
 
-  stack = this.physics.add.staticGroup();
+  stack = this.add.group();
   //brick.children.entries.forEach(child => stack.create(child.body.x, child.body.y+100,child.texture));
-  this.physics.add.collider(brick, stack, tileHitsGroundOrBlock,null,this);
+  //this.add.collider(brick, stack, tileHitsGroundOrBlock,null,this);
+
+  console.log(brick);
 
 }
 
 
-/*
-function checkInsideSprite(x,y,sprite) {
-  if(sprite.body.left < x && sprite.body.right > x && sprite.body.top < y && sprite.body.bottom > y) {
-    return true;
-  } else {
-    return false;
-  }
-}*/
-function adjacent(sprite1,sprite2,axis) {
-  if (axis === 'Y') {
-    if(sprite2.body.y < sprite1.body.y + 65 && sprite2.body.y > sprite1.body.y + 55) {
-      return true;
-    } else {
-      return false;
-    }
-  } else {
-    //Fill in for x axis
-  }
+function checkOverlap(groupA, groupB) {
+    for ()
+    var boundsA = spriteA.getBounds();
+    var boundsB = spriteB.getBounds();
+
+    return Phaser.Rectangle.intersects(boundsA, boundsB);
+
 }
 
-function tilesmatch(sprite1,sprite2,axis) {
-  if(axis === 'Y') {
-    console.log("TEXTURES");
-    if(sprite2.texture.key === sprite1.texture.key) {
-      console.log("MATCH");
-      return true;
-    } else {
-      return false;
-    }
-  } else {
-      //Fill in for x axis
-  }
-}
 
 function consolidateTilesX(tiles) {
   if(tiles.length > 0) {
@@ -296,6 +261,7 @@ function update() {
   //Detect line creation
   //HORIZONTAL LINES
   //Iterate through each row
+  /*
   var lines = [];
 
   for (var i = 520; i > 70; i-= 60) {
@@ -429,6 +395,8 @@ function update() {
     }
   }
 
+  */
+
   //Clear the lines variable for performance
   this.lines = [];
   //realignStack();
@@ -440,14 +408,13 @@ function update() {
         touchcount -= 1;
       }
       touched = false;
-      //brick.children.forEach(child => child.setVelocityY(80));
-      brick.setVelocityY(80);
+      brick.children.entries.forEach(child => child.y += 0.25);
       //// REVIEW: Line nleow not sure if the "!this.pysics.overlap" is needed
-      if(cursors.left.isDown && touchcount == 0 && !this.physics.overlap(brick,stack)) {
+      if(cursors.left.isDown && touchcount == 0 && !this.overlap(brick,stack)) {
         //Add a blank sprite to the left and check collides with stack
         var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y + 30);
         if(!this.physics.overlap(checksprite, stack)) {
-          brick.children.entries.forEach(child => child.body.x -= 60);
+          brick.children.entries.forEach(child => child.body.x -= 61);
         }
         checksprite.destroy();
         touched = true;
@@ -456,7 +423,7 @@ function update() {
         //Add a blank sprite to the left and check collides with stack
         var checksprite = this.physics.add.sprite(brick.children.entries[1].body.x + 60,brick.children.entries[0].body.y + 30);
         if(!this.physics.overlap(checksprite, stack)) {
-          brick.children.entries.forEach(child => child.body.x += 60);
+          brick.children.entries.forEach(child => child.body.x += 61);
         }
         checksprite.destroy();
         touched = true;
@@ -500,12 +467,11 @@ function update() {
         checksprite.destroy();
         touched = true;
         touchcount = 10;
-      } else {
-        brick.setVelocityX(0);
       }
     } else {
       //brick.children.forEach(child => child.setVelocityY(300));
-      brick.setVelocityY(300);
+      brick.children.entries.forEach(child => child.y += 60);
+
     }
   } else { brick.setVelocityY(0); }
 }
@@ -540,14 +506,9 @@ function tileHitsGroundOrBlock() {
      brick.children.each(child => stack.create(child.body.x + 30, (Math.floor(child.body.y / 60) * 60) + 120,child.texture));
    }*/
 
-   //CHECK HERE
-   //https://rexrainbow.github.io/phaser3-rex-notes/docs/site/arcade-body/#collision-bound
-
-  brick.children.each(child => stack.create(((Math.round(child.body.x / 60) * 60)), Math.round(child.body.y / 60) * 60,child.texture));
-  stack.children.each(child => child.body.checkCollision.left = false);
-  stack.children.each(child => child.body.checkCollision.right = false);
+  brick.children.each(child => stack.create((Math.round(child.body.x / 60) * 60)+ 30, Math.round(child.body.y / 60) * 60,child.texture));
   console.log(stack);
-  console.log(brick.children.entries[0].body.touching);
+  console.log(brick);
   brick.children.each(child => child.destroy());
   alert("Putting down");
   //var children = brick.getChildren();
@@ -562,8 +523,6 @@ function tileHitsGroundOrBlock() {
     //brick.create(this.game.config.width / 2, 0, 'tile'+randomNumber(1,6));
     brick.create(360, 0, 'tile'+randomNumber(1,6));
     brick.create(420, 0, 'tile'+randomNumber(1,6));
-    brick.children.each(child => child.body.checkCollision.left = false);
-    brick.children.each(child => child.body.checkCollision.right = false);
     //console.log("Here");
     //ground.body.setAllowGravity(false);
     //ground.setVelocityY(0);
@@ -572,4 +531,5 @@ function tileHitsGroundOrBlock() {
   }
   console.log(bottomrow);
   //brick.children.each(child => child.body.blocked.left=true);
+
 }
