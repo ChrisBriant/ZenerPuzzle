@@ -26,6 +26,8 @@ const game = new Phaser.Game(config);
 
 let brick;
 let ground;
+let rightwall;
+let leftwall;
 let stack;
 let cursors;
 let touched = false;
@@ -77,6 +79,10 @@ function create() {
   //ground.create(300,500, 'ground');
   var floor = this.add.tileSprite(400, 585, 800, 30, "block30x30");
   ground.add(floor);
+
+  rightwall = this.physics.add.staticGroup();
+  var rwalltsprite = this.add.tileSprite(720, 300, 30, 520, "block30x30");
+  rightwall.add(rwalltsprite);
   //ground.body.setAllowGravity(false);
   this.physics.add.collider(brick, ground, tileHitsGroundOrBlock,null,this);
 
@@ -130,13 +136,9 @@ function consolidateTilesX(tiles) {
         block.push(tiles[i].matchedtiles[j].matchx);
       }
     }
-
-    console.log("finished consolodation");
-    console.log(block);
     var blockunique = Array.from(new Set(block));
     var blockuniquewithy = [];
     for(var i = 0;i<blockunique.length;i++) {
-      console.log(i);
       blockuniquewithy.push({matchx:blockunique[i],matchy:tiles[0].matchedtiles[0].matchy});
     }
     var newmatches = [];
@@ -175,14 +177,15 @@ function checkLineofFourX(spritearray) {
   var matchedtiles = [];
   var matches = [];
 
+
   for(var i = 0; i < spritearray.length; i++) {
     if(i + 1 < spritearray.length) {
       //Check next sprite is adjacent
-      if(spritearray[i+1].body.x <= spritearray[i].body.x + 65 && spritearray[i+1].body.x >= spritearray[i].body.x + 55) {
+      if(spritearray[i+1].x == spritearray[i].x + 60) {
         //Check texture is the same
         if(spritearray[i+1].texture.key === spritearray[i].texture.key) {
             matchcount++;
-            matchedtiles.push({matchx:spritearray[i].body.x,matchy:spritearray[i].body.y});
+            matchedtiles.push({matchx:spritearray[i].x,matchy:spritearray[i].y});
         } else {
           matchcount = 0;
           matchedtiles = [];
@@ -194,11 +197,20 @@ function checkLineofFourX(spritearray) {
       //Match is found
       if(matchcount >= 3) {
         var matchingrow = [...matchedtiles];
-        matchingrow.push({matchx:spritearray[i+1].body.x,matchy:spritearray[i+1].body.y});
+        matchingrow.push({matchx:spritearray[i+1].x,matchy:spritearray[i+1].y});
         matches.push({texture:spritearray[i].texture.key,matchedtiles:matchingrow,matchcount:matchcount,type:'V'});
       }
     }
   }
+  /*
+  if(matches.length > 0) {
+    console.log("MATCH");
+    console.log(spritearray);
+    console.log(matches);
+    var consolodatedtiles = consolidateTilesX(matches);
+    console.log(consolodatedtiles);
+    alert("Match");
+  }*/
   var consolodatedtiles = consolidateTilesX(matches);
   return consolodatedtiles;
 }
@@ -231,11 +243,12 @@ function checkLineofFourY(spritearray) {
       //Match is found
       if(matchcount >= 3) {
         var matchingrow = [...matchedtiles];
-        matchingrow.push({matchx:spritearray[i+1].body.x,matchy:spritearray[i+1].body.y});
+        matchingrow.push({matchx:spritearray[i+1].x,matchy:spritearray[i+1].y});
         matches.push({texture:spritearray[i].texture.key,matchedtiles:matchingrow,matchcount:matchcount,type:'V'});
       }
     }
   }
+  /*
   if(matches.length > 0) {
     console.log("MATCH");
     console.log(spritearray);
@@ -245,7 +258,8 @@ function checkLineofFourY(spritearray) {
     alert("Match");
   } else {
     consolodatedtiles = [];
-  }
+  } */
+  var consolodatedtiles = consolidateTilesY(matches);
   return consolodatedtiles;
 }
 
@@ -301,7 +315,7 @@ function update() {
   //Iterate through each row
   var lines = [];
 
-  for (var i = 520; i > 70; i-= 60) {
+  for (var i = 540; i > 0; i-= 60) {
     //Get row and sort
     //var row = stack.children.entries.filter(child => child.body.y < i && child.body.y > i - 15 );
     var row = stack.children.entries.filter(child => child.y == i );
@@ -342,56 +356,63 @@ function update() {
                 console.log("undefined");
             }
 
+            /*
             console.log("Tiles from Stack");
             console.log(stack);
             console.log(currenttile);
             console.log(tilefromstack);
-            if(!tilefromstack[0].hasOwnProperty("flash")){
-              var graphics = this.add.graphics({
-                x: tilefromstack[0].body.x,
-                y: tilefromstack[0].body.y
-              })
-              .fillStyle(0xffff00, 0.75)
-              .fillRect(0, 0, tilefromstack[0].body.width, tilefromstack[0].body.height);
+            */
+            //if(tilefromstack.length > 0) {
+              if(!tilefromstack[0].hasOwnProperty("flash")){
+                var graphics = this.add.graphics({
+                  x: tilefromstack[0].body.x,
+                  y: tilefromstack[0].body.y
+                })
+                .fillStyle(0xffff00, 0.75)
+                .fillRect(0, 0, tilefromstack[0].body.width, tilefromstack[0].body.height);
 
-              //For tracking
-              flashingtiles.push(graphics);
+                //For tracking
+                flashingtiles.push(graphics);
 
-              this.tweens.add({
-                targets: graphics,
-                alpha: 0,
-                ease: 'Cubic.easeOut',
-                duration: 500,
-                repeat: -1,
-                yoyo: true
-              });
-              tilefromstack[0].flash = true;
-              tilefromstack[0].flashcount = 0;
-            } else {
-              tilefromstack[0].flashcount++;
-            }
-
-            //Destroy if aged out
-            if(tilefromstack[0].hasOwnProperty("flashcount")) {
-              if(tilefromstack[0].flashcount >= 50) {
-                console.log(flashingtiles);
-                destroyFlashingTile(tilefromstack[0].body.x,tilefromstack[0].body.y);
-                tilefromstack[0].destroy();
-                flashing = false;
+                this.tweens.add({
+                  targets: graphics,
+                  alpha: 0,
+                  ease: 'Cubic.easeOut',
+                  duration: 500,
+                  repeat: -1,
+                  yoyo: true
+                });
+                tilefromstack[0].flash = true;
+                tilefromstack[0].flashcount = 0;
               } else {
-                //So game can pause while the score is added
-                flashing = true;
+                tilefromstack[0].flashcount++;
               }
-            }
+
+              //Destroy if aged out
+              if(tilefromstack[0].hasOwnProperty("flashcount")) {
+                if(tilefromstack[0].flashcount >= 50) {
+                  console.log(flashingtiles);
+                  destroyFlashingTile(tilefromstack[0].body.x,tilefromstack[0].body.y);
+                  tilefromstack[0].destroy();
+                  flashing = false;
+                } else {
+                  //So game can pause while the score is added
+                  flashing = true;
+                }
+              }
+            //}
           }
         } else {
           //Horrizontal
 
           for(var k=0;k<lines[i][j].matchedtiles.length;k++) {
             var currenttile = lines[i][j].matchedtiles[k];
-            var tilefromstack = stack.children.entries.filter(child => (child.body.x == currenttile.matchx && child.body.y == currenttile.matchy));
+            var tilefromstack = stack.children.entries.filter(child => (child.x == currenttile.matchx && child.y == currenttile.matchy));
             //var frame = this.physics.scene.textures.getFrame(tilefromstack[0].texture, 'flashtile');
-
+            console.log("Tiles from Stack");
+            console.log(stack);
+            console.log(currenttile);
+            console.log(tilefromstack);
             if(!tilefromstack[0].hasOwnProperty("flash")){
               var graphics = this.add.graphics({
                 x: tilefromstack[0].body.x,
