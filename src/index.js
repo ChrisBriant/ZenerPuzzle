@@ -30,6 +30,8 @@ let rightwall;
 let leftwall;
 let stack;
 let cursors;
+let score = 0;
+let scoretext;
 let touched = false;
 let touchcount=0;
 let flashingtiles = [];
@@ -50,6 +52,12 @@ function preload() {
   this.load.image('tile5', './src/assets/bricks/tile5.png');
   this.load.image('ground', './src/assets/platform.png');
   this.load.image('block30x30', './src/assets/bricks/block30x30.png');
+}
+
+//for score
+function pad(num, size) {
+    var s = "000000000" + num;
+    return s.substr(s.length-size);
 }
 
 function create() {
@@ -80,9 +88,20 @@ function create() {
   var floor = this.add.tileSprite(400, 585, 800, 30, "block30x30");
   ground.add(floor);
 
+  //Add walls
   rightwall = this.physics.add.staticGroup();
-  var rwalltsprite = this.add.tileSprite(720, 300, 30, 520, "block30x30");
+  var rwalltsprite = this.add.tileSprite(780, 300, 60, 595, "block30x30");
   rightwall.add(rwalltsprite);
+  leftwall = this.physics.add.staticGroup();
+  var lwalltsprite = this.add.tileSprite(195, 300, 30, 595, "block30x30");
+  leftwall.add(lwalltsprite);
+  var farleftwall = this.physics.add.staticGroup();
+  var flwalltsprite = this.add.tileSprite(15, 300, 30, 595, "block30x30");
+  farleftwall.add(flwalltsprite);
+  this.add.tileSprite(90, 15, 240, 30, "block30x30");
+  //Game text
+  this.add.text(35, 30, 'Score:', { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+  scoretext = this.add.text(35, 50, pad(score), { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
   //ground.body.setAllowGravity(false);
   this.physics.add.collider(brick, ground, tileHitsGroundOrBlock,null,this);
 
@@ -270,6 +289,40 @@ function destroyFlashingTile(x,y) {
   destroytile[0].destroy();
 }
 
+//Calculate the score
+function scoreTiles(tiles) {
+  var nonscored = tiles.filter(tile => (!tile.hasOwnProperty("scored")));
+
+  console.log(nonscored);
+
+  var tilesof1 = nonscored.filter(tile => (tile.texture.key == 'tile1'));
+  var tilesof2 = nonscored.filter(tile => (tile.texture.key == 'tile2'));
+  var tilesof3 = nonscored.filter(tile => (tile.texture.key == 'tile3'));
+  var tilesof4 = nonscored.filter(tile => (tile.texture.key == 'tile4'));
+  var tilesof5 = nonscored.filter(tile => (tile.texture.key == 'tile5'));
+
+  if (tilesof1.length > 0) {
+    alert("scored");
+    //score += tilesof1.length * 10;
+    score += 10;
+  } else if (tilesof2.length > 0) {
+    //score += tilesof2.length * 10;
+    score += 10;
+  } else if (tilesof3.length > 0) {
+    //score += tilesof3.length * 10;
+    score += 10;
+  } else if (tilesof4.length > 0) {
+    //score += tilesof4.length * 10;
+    score += 10;
+  } else if (tilesof5.length > 0) {
+    //score += tilesof5.length * 10;
+    score += 10;
+  }
+
+  //Set the tiles to scored
+  nonscored.forEach(tile => tile.scored = true);
+}
+
 //Sort the stack to take out move tiles down where there are gaps
 function realignStack() {
   //Iterate through each column
@@ -288,7 +341,6 @@ function realignStack() {
           if(!(j + 15 >= col[currcol].body.y && j - 15 <= col[currcol].body.y)) {
             //Gap detected
             var gap = j;
-            console.log(gap);
             //Move block into gap
             //stack.create(col[currcol].body.x + 29, j + 20,col[currcol].texture);
             stack.create((Math.round(col[currcol].body.x / 60) * 60), ((Math.round((col[currcol].body.y+1) / 60)) * 60)+60,col[currcol].texture);
@@ -345,6 +397,11 @@ function update() {
   if(lines.length > 0) {
     for(var i=0;i<lines.length;i++) {
       for(var j=0;j<lines[i].length;j++) {
+        scoreTiles(lines[i][j].matchedtiles);
+        if (score > 0) {
+          console.log("Score");
+          console.log(score);
+        }
         //Deal with vertical
         if(lines[i][j].type === 'V') {
           //console.log(lines[i][j].matchedtiles);
@@ -352,9 +409,6 @@ function update() {
             var currenttile = lines[i][j].matchedtiles[k];
             var tilefromstack = stack.children.entries.filter(child => (child.x == currenttile.matchx && child.y == currenttile.matchy));
             //var frame = this.physics.scene.textures.getFrame(tilefromstack[0].texture, 'flashtile');
-            if(typeof tilefromstack[0] === undefined) {
-                console.log("undefined");
-            }
 
             /*
             console.log("Tiles from Stack");
@@ -441,7 +495,7 @@ function update() {
             //Destroy if aged out
             if(tilefromstack[0].hasOwnProperty("flashcount")) {
               if(tilefromstack[0].flashcount >= 50) {
-                console.log(flashingtiles);
+                //console.log(flashingtiles);
                 destroyFlashingTile(tilefromstack[0].body.x,tilefromstack[0].body.y);
                 tilefromstack[0].destroy();
                 flashing = false;
@@ -474,7 +528,7 @@ function update() {
       if(cursors.left.isDown && touchcount == 0 && !this.physics.overlap(brick,stack)) {
         //Add a blank sprite to the left and check collides with stack
         var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y + 30);
-        if(!this.physics.overlap(checksprite, stack)) {
+        if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
           brick.children.entries.forEach(child => child.body.x -= 60);
         }
         checksprite.destroy();
@@ -483,7 +537,7 @@ function update() {
       } else if (cursors.right.isDown && touchcount == 0) {
         //Add a blank sprite to the left and check collides with stack
         var checksprite = this.physics.add.sprite(brick.children.entries[1].body.x + 60,brick.children.entries[0].body.y + 30);
-        if(!this.physics.overlap(checksprite, stack)) {
+        if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
           brick.children.entries.forEach(child => child.body.x += 60);
         }
         checksprite.destroy();
@@ -496,7 +550,7 @@ function update() {
           console.log("Horizontal left");
           //Check not blocked
           var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x + 60,brick.children.entries[0].body.y - 60,'tile1');
-          if(!this.physics.overlap(checksprite, stack)) {
+          if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
             brick.children.entries[0].body.x += 60;
             brick.children.entries[0].body.y -= 60;
           }
@@ -504,7 +558,7 @@ function update() {
           //Brick is horizontally alligned with first brick on right
           console.log("Horizontal right");
           var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y + 60,'tile1');
-          if(!this.physics.overlap(checksprite, stack)) {
+          if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
             brick.children.entries[0].body.x -= 60;
             brick.children.entries[0].body.y += 60;
           }
@@ -512,7 +566,7 @@ function update() {
           //Brick is orientated vertically and first brick is on top so rotate to horizontal position
           console.log("Virtical top");
           var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x + 60,brick.children.entries[0].body.y + 60,'tile1');
-          if(!this.physics.overlap(checksprite, stack)) {
+          if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
             brick.children.entries[0].body.x += 60;
             brick.children.entries[0].body.y += 60;
           }
@@ -520,7 +574,7 @@ function update() {
           //Brick is orientated vertically and first brick is on bottom so rotate to horizontal position
           console.log("Virtical bottom");
           var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y - 60,'tile1');
-          if(!this.physics.overlap(checksprite, stack)) {
+          if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
             brick.children.entries[0].body.x -= 60;
             brick.children.entries[0].body.y -= 60;
           }
@@ -532,7 +586,6 @@ function update() {
         brick.setVelocityX(0);
       }
     } else {
-      //brick.children.forEach(child => child.setVelocityY(300));
       brick.setVelocityY(300);
     }
   } else { brick.setVelocityY(0); }
