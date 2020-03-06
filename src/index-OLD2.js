@@ -366,152 +366,9 @@ function realignStack() {
 
 
 function update() {
+  realignStack();
 
-  //realignStack();
-
-  if(!flashing) {
-    // Configure the controls!
-    if (!cursors.down.isDown) {
-      if(touchcount > 0) {
-        touchcount -= 1;
-      }
-      touched = false;
-      //brick.children.forEach(child => child.setVelocityY(80));
-      brick.setVelocityY(80);
-      //// REVIEW: Line nleow not sure if the "!this.pysics.overlap" is needed
-      if(cursors.left.isDown && touchcount == 0 && !this.physics.overlap(brick,stack)) {
-        //Add a blank sprite to the left and check collides with stack
-        var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y + 30);
-        if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
-          brick.children.entries.forEach(child => child.body.x -= 60);
-        }
-        checksprite.destroy();
-        touched = true;
-        touchcount = 10;
-      } else if (cursors.right.isDown && touchcount == 0) {
-        //Add a blank sprite to the left and check collides with stack
-        var checksprite = this.physics.add.sprite(brick.children.entries[1].body.x + 60,brick.children.entries[0].body.y + 30);
-        if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
-          brick.children.entries.forEach(child => child.body.x += 60);
-        }
-        checksprite.destroy();
-        touched = true;
-        touchcount = 10;
-      } else if (cursors.space.isDown && touchcount == 0) {
-        //Handle rotation
-        if(brick.children.entries[1].body.x > brick.children.entries[0].body.x + 5 && brick.children.entries[1].body.x > brick.children.entries[0].body.x - 5) {
-          //Brick is horrizontally alligned so move to vertical orientation
-          console.log("Horizontal left");
-          //Check not blocked
-          var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x + 60,brick.children.entries[0].body.y - 60,'tile1');
-          if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
-            brick.children.entries[0].body.x += 60;
-            brick.children.entries[0].body.y -= 60;
-          }
-        } else if(brick.children.entries[0].body.x > brick.children.entries[1].body.x + 5 && brick.children.entries[0].body.x > brick.children.entries[1].body.x - 5) {
-          //Brick is horizontally alligned with first brick on right
-          console.log("Horizontal right");
-          var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y + 60,'tile1');
-          if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
-            brick.children.entries[0].body.x -= 60;
-            brick.children.entries[0].body.y += 60;
-          }
-        } else if (brick.children.entries[1].body.y > brick.children.entries[0].body.y + 5 && brick.children.entries[1].body.y > brick.children.entries[0].body.y - 5) {
-          //Brick is orientated vertically and first brick is on top so rotate to horizontal position
-          console.log("Virtical top");
-          var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x + 60,brick.children.entries[0].body.y + 60,'tile1');
-          if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
-            brick.children.entries[0].body.x += 60;
-            brick.children.entries[0].body.y += 60;
-          }
-        } else if (brick.children.entries[0].body.y > brick.children.entries[1].body.y + 5 && brick.children.entries[0].body.y > brick.children.entries[1].body.y - 5) {
-          //Brick is orientated vertically and first brick is on bottom so rotate to horizontal position
-          console.log("Virtical bottom");
-          var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y - 60,'tile1');
-          if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
-            brick.children.entries[0].body.x -= 60;
-            brick.children.entries[0].body.y -= 60;
-          }
-        }
-        checksprite.destroy();
-        touched = true;
-        touchcount = 10;
-      } else {
-        brick.setVelocityX(0);
-      }
-    } else {
-      brick.setVelocityY(300);
-    }
-  } else { brick.setVelocityY(0); }
-}
-
-function tileHitsGroundOrBlock() {
-  //console.log(lines);
-  //lineoffour = checkLineofFourX(bottomrow);
-  //console.log(lineoffour);
-
-  //console.log(brick);
-  //brick.children.each(child => console.log(child.body.overlapY));
-  //console.log(brick.children.entries.filter(child => child.body.touching));
-  //brick.children.each(child => console.log(child.body));
-  //var children = brick.getChildren();
-  var topofstack = brick.children.entries.filter(child => child.body.y < 60);
-  //children.entries.forEach(child => console.log(child.body.y));
-  //children.entries.forEach(child => stack.add(child));
-  //children.entries.forEach(child => stack.create(child.body.x, child.body.y,child.texture));
-  /*
-  for(var i=0;i<children.length;i++) {
-    //children[i].destroy();
-    brick.remove(children[i],true,true);
-  }*/
-  /*
-  if(!(brick.children.entries[0].body.x >= brick.children.entries[1].body.x - 10 && brick.children.entries[0].body.x <= brick.children.entries[1].body.x + 10)) {
-     //horizontal orientated
-     var brick1y = brick.children.entries[0].body.y;
-     //brick.children.each(child => stack.create(child.body.x + 30, brick1y + 30,child.texture));
-     brick.children.each(child => stack.create(child.body.x + 30, (Math.floor(brick1y.body.y / 60) * 60) + 120,child.texture));
-   } else {
-     //brick.children.each(child => stack.create(child.body.x + 30, child.body.y + 30,child.texture));
-     brick.children.each(child => stack.create(child.body.x + 30, (Math.floor(child.body.y / 60) * 60) + 120,child.texture));
-   }*/
-
-   //CHECK HERE
-   //https://rexrainbow.github.io/phaser3-rex-notes/docs/site/arcade-body/#collision-bound
-
-  //brick.children.each(child => stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y+1) / 60) * 60,child.texture));
-
-  for(var i=0;i<brick.children.entries.length;i++) {
-    var child = brick.children.entries[i];
-    console.log("touching");
-    console.log(child.body.tocuhing);
-    if(child.body.touching.down) {
-      stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y+1) / 60) * 60,child.texture);
-      child.destroy();
-    }
-  }
-  //stack.children.each(child => child.body.checkCollision.right = false);
-  //brick.children.each(child => child.destroy());
-  //var children = brick.getChildren();
-  //brick.clear();
-  if(topofstack.length == 0 && brick.children.entries.length == 0) {
-    //Add to stack
-    //children.entries.forEach(child => stack.add(child));
-    //children.entries.forEach(child => console.log(child));
-    //stack.create(300,100, 'ground');
-    //let brick = this.physics.add.group();
-    //brick.create((this.game.config.width / 2) - 60, 0, 'tile'+randomNumber(1,6));
-    //brick.create(this.game.config.width / 2, 0, 'tile'+randomNumber(1,6));
-    brick.create(360, 0, 'tile'+randomNumber(1,6));
-    brick.create(420, 0, 'tile'+randomNumber(1,6));
-    //brick.children.each(child => child.body.checkCollision.left = false);
-    //brick.children.each(child => child.body.checkCollision.right = false);
-    brick.children.each(child => child.body.setSize(58,60,29));
-    //console.log("Here");
-    //ground.body.setAllowGravity(false);
-    //ground.setVelocityY(0);
-  }
-
-  if(brick.children.entries.length > 0) {
+  if(!falling) {
     //Detect line creation
     //HORIZONTAL LINES
     //Iterate through each row
@@ -660,7 +517,144 @@ function tileHitsGroundOrBlock() {
         }
       }
     }
-    //Clear the lines variable for performance
-    this.lines = []
+  }
+  //Clear the lines variable for performance
+  this.lines = [];
+  //realignStack();
+
+  if(!flashing) {
+    // Configure the controls!
+    if (!cursors.down.isDown) {
+      if(touchcount > 0) {
+        touchcount -= 1;
+      }
+      touched = false;
+      //brick.children.forEach(child => child.setVelocityY(80));
+      brick.setVelocityY(80);
+      //// REVIEW: Line nleow not sure if the "!this.pysics.overlap" is needed
+      if(cursors.left.isDown && touchcount == 0 && !this.physics.overlap(brick,stack)) {
+        //Add a blank sprite to the left and check collides with stack
+        var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y + 30);
+        if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
+          brick.children.entries.forEach(child => child.body.x -= 60);
+        }
+        checksprite.destroy();
+        touched = true;
+        touchcount = 10;
+      } else if (cursors.right.isDown && touchcount == 0) {
+        //Add a blank sprite to the left and check collides with stack
+        var checksprite = this.physics.add.sprite(brick.children.entries[1].body.x + 60,brick.children.entries[0].body.y + 30);
+        if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
+          brick.children.entries.forEach(child => child.body.x += 60);
+        }
+        checksprite.destroy();
+        touched = true;
+        touchcount = 10;
+      } else if (cursors.space.isDown && touchcount == 0) {
+        //Handle rotation
+        if(brick.children.entries[1].body.x > brick.children.entries[0].body.x + 5 && brick.children.entries[1].body.x > brick.children.entries[0].body.x - 5) {
+          //Brick is horrizontally alligned so move to vertical orientation
+          console.log("Horizontal left");
+          //Check not blocked
+          var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x + 60,brick.children.entries[0].body.y - 60,'tile1');
+          if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
+            brick.children.entries[0].body.x += 60;
+            brick.children.entries[0].body.y -= 60;
+          }
+        } else if(brick.children.entries[0].body.x > brick.children.entries[1].body.x + 5 && brick.children.entries[0].body.x > brick.children.entries[1].body.x - 5) {
+          //Brick is horizontally alligned with first brick on right
+          console.log("Horizontal right");
+          var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y + 60,'tile1');
+          if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
+            brick.children.entries[0].body.x -= 60;
+            brick.children.entries[0].body.y += 60;
+          }
+        } else if (brick.children.entries[1].body.y > brick.children.entries[0].body.y + 5 && brick.children.entries[1].body.y > brick.children.entries[0].body.y - 5) {
+          //Brick is orientated vertically and first brick is on top so rotate to horizontal position
+          console.log("Virtical top");
+          var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x + 60,brick.children.entries[0].body.y + 60,'tile1');
+          if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
+            brick.children.entries[0].body.x += 60;
+            brick.children.entries[0].body.y += 60;
+          }
+        } else if (brick.children.entries[0].body.y > brick.children.entries[1].body.y + 5 && brick.children.entries[0].body.y > brick.children.entries[1].body.y - 5) {
+          //Brick is orientated vertically and first brick is on bottom so rotate to horizontal position
+          console.log("Virtical bottom");
+          var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y - 60,'tile1');
+          if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
+            brick.children.entries[0].body.x -= 60;
+            brick.children.entries[0].body.y -= 60;
+          }
+        }
+        checksprite.destroy();
+        touched = true;
+        touchcount = 10;
+      } else {
+        brick.setVelocityX(0);
+      }
+    } else {
+      brick.setVelocityY(300);
+    }
+  } else { brick.setVelocityY(0); }
+}
+
+function tileHitsGroundOrBlock() {
+  //console.log(lines);
+  //lineoffour = checkLineofFourX(bottomrow);
+  //console.log(lineoffour);
+
+  //console.log(brick);
+  //brick.children.each(child => console.log(child.body.overlapY));
+  //console.log(brick.children.entries.filter(child => child.body.touching));
+  //brick.children.each(child => console.log(child.body));
+  //var children = brick.getChildren();
+  var topofstack = brick.children.entries.filter(child => child.body.y < 60);
+  //children.entries.forEach(child => console.log(child.body.y));
+  //children.entries.forEach(child => stack.add(child));
+  //children.entries.forEach(child => stack.create(child.body.x, child.body.y,child.texture));
+  /*
+  for(var i=0;i<children.length;i++) {
+    //children[i].destroy();
+    brick.remove(children[i],true,true);
+  }*/
+  /*
+  if(!(brick.children.entries[0].body.x >= brick.children.entries[1].body.x - 10 && brick.children.entries[0].body.x <= brick.children.entries[1].body.x + 10)) {
+     //horizontal orientated
+     var brick1y = brick.children.entries[0].body.y;
+     //brick.children.each(child => stack.create(child.body.x + 30, brick1y + 30,child.texture));
+     brick.children.each(child => stack.create(child.body.x + 30, (Math.floor(brick1y.body.y / 60) * 60) + 120,child.texture));
+   } else {
+     //brick.children.each(child => stack.create(child.body.x + 30, child.body.y + 30,child.texture));
+     brick.children.each(child => stack.create(child.body.x + 30, (Math.floor(child.body.y / 60) * 60) + 120,child.texture));
+   }*/
+
+   //CHECK HERE
+   //https://rexrainbow.github.io/phaser3-rex-notes/docs/site/arcade-body/#collision-bound
+
+  brick.children.each(child => stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y+1) / 60) * 60,child.texture));
+  //stack.children.each(child => child.body.checkCollision.right = false);
+  console.log(stack);
+  console.log(brick.children.entries[0].body.touching);
+  brick.children.each(child => child.destroy());
+  //var children = brick.getChildren();
+  brick.clear();
+  if(topofstack.length == 0) {
+    //Add to stack
+    //children.entries.forEach(child => stack.add(child));
+    //children.entries.forEach(child => console.log(child));
+    //stack.create(300,100, 'ground');
+    //let brick = this.physics.add.group();
+    //brick.create((this.game.config.width / 2) - 60, 0, 'tile'+randomNumber(1,6));
+    //brick.create(this.game.config.width / 2, 0, 'tile'+randomNumber(1,6));
+    brick.create(360, 0, 'tile'+randomNumber(1,6));
+    brick.create(420, 0, 'tile'+randomNumber(1,6));
+    //brick.children.each(child => child.body.checkCollision.left = false);
+    //brick.children.each(child => child.body.checkCollision.right = false);
+    brick.children.each(child => child.body.setSize(58,60,29));
+    //console.log("Here");
+    //ground.body.setAllowGravity(false);
+    //ground.setVelocityY(0);
+  } else {
+    console.log(bottomrow);
   }
 }
