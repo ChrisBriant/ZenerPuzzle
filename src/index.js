@@ -34,7 +34,7 @@ let score = 0;
 let scoretext;
 let touched = false;
 let touchcount=0;
-let flashingtiles = [];
+let flashgraphics = [];
 let flashing = false;
 let falling = false;
 
@@ -286,8 +286,12 @@ function checkLineofFourY(spritearray) {
 
 //Remove the flashing graphics
 function destroyFlashingTile(x,y) {
-  var destroytile = flashingtiles.filter(child => child.x == x && child.y == y);
+  console.log(flashgraphics);
+  console.log(x);
+  console.log(y);
+  var destroytile = flashgraphics.filter(child => child.x == x-30 && child.y == y-30);
   destroytile[0].destroy();
+  alert("graphics")
 }
 
 //Calculate the score
@@ -367,9 +371,39 @@ function realignStack() {
 
 function update() {
 
-  //realignStack();
+  //Get all of the flashing tiles
+  var flashingtiles = stack.children.entries.filter(tile => (tile.flashcount == 0));
+  if(flashingtiles.length > 0) {
+    alert("We are flashing");
+  }
 
-  if(!flashing) {
+
+  if(flashingtiles.length > 0) {
+    console.log(flashingtiles);
+    //Stop movement
+    brick.setVelocityY(0);
+
+    for(var i=0;i<flashingtiles.length;i++) {
+      var graphics = this.add.graphics({
+        x: flashingtiles[i].x-30,
+        y: flashingtiles[i].y-30
+      })
+      .fillStyle(0xffff00, 0.75)
+      .fillRect(0, 0, flashingtiles[i].width, flashingtiles[i].height);
+
+      flashgraphics.push(graphics);
+
+      this.tweens.add({
+        targets: graphics,
+        alpha: 0,
+        ease: 'Cubic.easeOut',
+        duration: 500,
+        repeat: -1,
+        yoyo: true
+      });
+
+    }
+  } else {
     // Configure the controls!
     if (!cursors.down.isDown) {
       if(touchcount > 0) {
@@ -442,7 +476,17 @@ function update() {
     } else {
       brick.setVelocityY(300);
     }
-  } else { brick.setVelocityY(0); }
+  }
+
+  //Increment the flashing tiles
+  var incrementflashtiles = stack.children.entries.filter(tile => (tile.flashcount >= 0));
+  incrementflashtiles.forEach(flashing => flashing.flashcount++);
+  for (var i =0;i<incrementflashtiles.length;i++) {
+    if(incrementflashtiles[i].flashcount >= 20) {
+      destroyFlashingTile(incrementflashtiles[i].x, incrementflashtiles[i].y);
+      incrementflashtiles[i].destroy();
+    }
+  }
 }
 
 function tileHitsGroundOrBlock() {
@@ -493,25 +537,8 @@ function tileHitsGroundOrBlock() {
   //brick.children.each(child => child.destroy());
   //var children = brick.getChildren();
   //brick.clear();
-  if(topofstack.length == 0 && brick.children.entries.length == 0) {
-    //Add to stack
-    //children.entries.forEach(child => stack.add(child));
-    //children.entries.forEach(child => console.log(child));
-    //stack.create(300,100, 'ground');
-    //let brick = this.physics.add.group();
-    //brick.create((this.game.config.width / 2) - 60, 0, 'tile'+randomNumber(1,6));
-    //brick.create(this.game.config.width / 2, 0, 'tile'+randomNumber(1,6));
-    brick.create(360, 0, 'tile'+randomNumber(1,6));
-    brick.create(420, 0, 'tile'+randomNumber(1,6));
-    //brick.children.each(child => child.body.checkCollision.left = false);
-    //brick.children.each(child => child.body.checkCollision.right = false);
-    brick.children.each(child => child.body.setSize(58,60,29));
-    //console.log("Here");
-    //ground.body.setAllowGravity(false);
-    //ground.setVelocityY(0);
-  }
 
-  if(brick.children.entries.length > 0) {
+  if(brick.children.entries.length == 0) {
     //Detect line creation
     //HORIZONTAL LINES
     //Iterate through each row
@@ -558,53 +585,15 @@ function tileHitsGroundOrBlock() {
             for(var k=0;k<lines[i][j].matchedtiles.length;k++) {
               var currenttile = lines[i][j].matchedtiles[k];
               var tilefromstack = stack.children.entries.filter(child => (child.x == currenttile.matchx && child.y == currenttile.matchy));
-              //var frame = this.physics.scene.textures.getFrame(tilefromstack[0].texture, 'flashtile');
 
-              /*
-              console.log("Tiles from Stack");
-              console.log(stack);
-              console.log(currenttile);
-              console.log(tilefromstack);
-              */
-              //if(tilefromstack.length > 0) {
-                if(!tilefromstack[0].hasOwnProperty("flash")){
-                  var graphics = this.add.graphics({
-                    x: tilefromstack[0].body.x,
-                    y: tilefromstack[0].body.y
-                  })
-                  .fillStyle(0xffff00, 0.75)
-                  .fillRect(0, 0, tilefromstack[0].body.width, tilefromstack[0].body.height);
-
-                  //For tracking
-                  flashingtiles.push(graphics);
-
-                  this.tweens.add({
-                    targets: graphics,
-                    alpha: 0,
-                    ease: 'Cubic.easeOut',
-                    duration: 500,
-                    repeat: -1,
-                    yoyo: true
-                  });
-                  tilefromstack[0].flash = true;
-                  tilefromstack[0].flashcount = 0;
-                } else {
-                  tilefromstack[0].flashcount++;
-                }
-
-                //Destroy if aged out
-                if(tilefromstack[0].hasOwnProperty("flashcount")) {
-                  if(tilefromstack[0].flashcount >= 50) {
-                    console.log(flashingtiles);
-                    destroyFlashingTile(tilefromstack[0].body.x,tilefromstack[0].body.y);
-                    tilefromstack[0].destroy();
-                    flashing = false;
-                  } else {
-                    //So game can pause while the score is added
-                    flashing = true;
-                  }
-                }
-              //}
+              if(!tilefromstack[0].hasOwnProperty("flash")){
+                tilefromstack[0].flash = true;
+                tilefromstack[0].flashcount = 0;
+                console.log(tilefromstack);
+                console.log(stack);
+                alert("ADDED FLASH");
+                //flashingtiles.push(tilefromstack[0]);
+              }
             }
           } else {
             //Horrizontal
@@ -612,55 +601,35 @@ function tileHitsGroundOrBlock() {
             for(var k=0;k<lines[i][j].matchedtiles.length;k++) {
               var currenttile = lines[i][j].matchedtiles[k];
               var tilefromstack = stack.children.entries.filter(child => (child.x == currenttile.matchx && child.y == currenttile.matchy));
-              //var frame = this.physics.scene.textures.getFrame(tilefromstack[0].texture, 'flashtile');
-              console.log("Tiles from Stack");
-              console.log(stack);
-              console.log(currenttile);
-              console.log(tilefromstack);
+
               if(!tilefromstack[0].hasOwnProperty("flash")){
-                var graphics = this.add.graphics({
-                  x: tilefromstack[0].body.x,
-                  y: tilefromstack[0].body.y
-                })
-                .fillStyle(0xffff00, 0.75)
-                .fillRect(0, 0, tilefromstack[0].body.width, tilefromstack[0].body.height);
-
-                //For tracking
-                flashingtiles.push(graphics);
-
-                this.tweens.add({
-                  targets: graphics,
-                  alpha: 0,
-                  ease: 'Cubic.easeOut',
-                  duration: 500,
-                  repeat: -1,
-                  yoyo: true
-                });
                 tilefromstack[0].flash = true;
                 tilefromstack[0].flashcount = 0;
-              } else {
-                tilefromstack[0].flashcount++;
-              }
-
-              //Destroy if aged out
-              if(tilefromstack[0].hasOwnProperty("flashcount")) {
-                if(tilefromstack[0].flashcount >= 50) {
-                  //console.log(flashingtiles);
-                  destroyFlashingTile(tilefromstack[0].body.x,tilefromstack[0].body.y);
-                  tilefromstack[0].destroy();
-                  flashing = false;
-                } else {
-                  //So game can pause while the score is added
-                  flashing = true;
-                }
               }
             }
-
           }
         }
       }
     }
     //Clear the lines variable for performance
     this.lines = []
+  }
+
+  if(topofstack.length == 0 && brick.children.entries.length == 0) {
+    //Add to stack
+    //children.entries.forEach(child => stack.add(child));
+    //children.entries.forEach(child => console.log(child));
+    //stack.create(300,100, 'ground');
+    //let brick = this.physics.add.group();
+    //brick.create((this.game.config.width / 2) - 60, 0, 'tile'+randomNumber(1,6));
+    //brick.create(this.game.config.width / 2, 0, 'tile'+randomNumber(1,6));
+    brick.create(360, 0, 'tile'+randomNumber(1,6));
+    brick.create(420, 0, 'tile'+randomNumber(1,6));
+    //brick.children.each(child => child.body.checkCollision.left = false);
+    //brick.children.each(child => child.body.checkCollision.right = false);
+    brick.children.each(child => child.body.setSize(58,60,29));
+    //console.log("Here");
+    //ground.body.setAllowGravity(false);
+    //ground.setVelocityY(0);
   }
 }
