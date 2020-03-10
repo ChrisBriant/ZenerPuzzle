@@ -286,12 +286,8 @@ function checkLineofFourY(spritearray) {
 
 //Remove the flashing graphics
 function destroyFlashingTile(x,y) {
-  console.log(flashgraphics);
-  console.log(x);
-  console.log(y);
   var destroytile = flashgraphics.filter(child => child.x == x-30 && child.y == y-30);
   destroytile[0].destroy();
-  alert("graphics")
 }
 
 //Calculate the score
@@ -373,10 +369,6 @@ function update() {
 
   //Get all of the flashing tiles
   var flashingtiles = stack.children.entries.filter(tile => (tile.flashcount == 0));
-  if(flashingtiles.length > 0) {
-    alert("We are flashing");
-  }
-
 
   if(flashingtiles.length > 0) {
     console.log(flashingtiles);
@@ -410,7 +402,7 @@ function update() {
         touchcount -= 1;
       }
       touched = false;
-      //brick.children.forEach(child => child.setVelocityY(80));
+      //brick.children.entries.forEach(child => child.setVelocityY(80));
       brick.setVelocityY(80);
       //// REVIEW: Line nleow not sure if the "!this.pysics.overlap" is needed
       if(cursors.left.isDown && touchcount == 0 && !this.physics.overlap(brick,stack)) {
@@ -474,6 +466,7 @@ function update() {
         brick.setVelocityX(0);
       }
     } else {
+      //brick.children.entries.forEach(child => child.setVelocityY(300));
       brick.setVelocityY(300);
     }
   }
@@ -500,6 +493,13 @@ function tileHitsGroundOrBlock() {
   //brick.children.each(child => console.log(child.body));
   //var children = brick.getChildren();
   var topofstack = brick.children.entries.filter(child => child.body.y < 60);
+  if(stack.children.entries.length > 0) {
+    var stackheight = Math.min.apply(Math, stack.children.entries.map(function(o) { return o.y; })) + 60;
+  } else {
+    stackheight = 630;
+  }
+  console.log("STACKHEIGHT");
+  console.log(stackheight);
   //children.entries.forEach(child => console.log(child.body.y));
   //children.entries.forEach(child => stack.add(child));
   //children.entries.forEach(child => stack.create(child.body.x, child.body.y,child.texture));
@@ -524,15 +524,30 @@ function tileHitsGroundOrBlock() {
 
   //brick.children.each(child => stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y+1) / 60) * 60,child.texture));
 
+  //Length not right ??????
+  console.log(brick.children.entries);
+
+
   for(var i=0;i<brick.children.entries.length;i++) {
     var child = brick.children.entries[i];
-    console.log("touching");
-    console.log(child.body.tocuhing);
-    if(child.body.touching.down) {
-      stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y+1) / 60) * 60,child.texture);
+    //console.log(i);
+    //console.log("touching");
+    //console.log(child.body.touching);
+    //console.log(child.y);
+    if(child.y > stackheight) {
+      console.log(child);
+      //alert("More than stackheight");
+    }
+    if(child.body.blocked.down || child.y > stackheight) {
+      //console.log(Math.round((child.body.y+1)));
+      //stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y+1) / 60) * 60,child.texture);
+      //alert("CREATED");
+      stack.create(((Math.round(child.body.x / 60) * 60)), stackheight-60,child.texture);
       child.destroy();
     }
   }
+
+
   //stack.children.each(child => child.body.checkCollision.right = false);
   //brick.children.each(child => child.destroy());
   //var children = brick.getChildren();
@@ -589,10 +604,6 @@ function tileHitsGroundOrBlock() {
               if(!tilefromstack[0].hasOwnProperty("flash")){
                 tilefromstack[0].flash = true;
                 tilefromstack[0].flashcount = 0;
-                console.log(tilefromstack);
-                console.log(stack);
-                alert("ADDED FLASH");
-                //flashingtiles.push(tilefromstack[0]);
               }
             }
           } else {
@@ -631,5 +642,7 @@ function tileHitsGroundOrBlock() {
     //console.log("Here");
     //ground.body.setAllowGravity(false);
     //ground.setVelocityY(0);
+  } else {
+    console.log(stack);
   }
 }
