@@ -324,6 +324,8 @@ function scoreTiles(tiles) {
   nonscored.forEach(tile => tile.scored = true);
 }
 
+
+
 //Sort the stack to take out move tiles down where there are gaps
 function realignStack() {
   //Iterate through each column
@@ -341,17 +343,11 @@ function realignStack() {
           //Check next sprite is not adjacent
           if(!(j + 15 >= col[currcol].body.y && j - 15 <= col[currcol].body.y)) {
             //Gap detected
-            falling = true;
-            //Move block into gap
-            //stack.create(col[currcol].body.x + 29, j + 20,col[currcol].texture);
-            var newtile = stack.create((Math.round(col[currcol].body.x / 60) * 60), ((Math.round((col[currcol].body.y+1) / 60)) * 60)+60,col[currcol].texture);
-
-            //stack.create(col[currcol].body.x + 30, (Math.floor(col[currcol].body.y / 60) * 60) + 120,col[currcol].texture)
-            col[currcol].destroy();
-            //Check to see if there is a gap underneath
-
-            currcol++;
+            alert("GAP DETECTED");
             //Move tile down
+            brick.create(col[currcol].body.x+30, col[currcol].body.y+30, col[currcol].texture);
+            col[currcol].destroy();
+            currcol++;
           } else {
             currcol++;
           }
@@ -361,6 +357,8 @@ function realignStack() {
           }
         }
     }
+    //Change the collision domain
+    brick.children.each(child => child.body.setSize(50,60,29));
   }
 }
 
@@ -396,6 +394,13 @@ function update() {
 
     }
   } else {
+    //Create a new brick if it is now destroyed
+    /*
+    if(brick.children.entries.length == 0) {
+      brick.create(360, 0, 'tile'+randomNumber(1,6));
+      brick.create(420, 0, 'tile'+randomNumber(1,6));
+      brick.children.each(child => child.body.setSize(50,60,29));
+    }*/
     // Configure the controls!
     if (!cursors.down.isDown) {
       if(touchcount > 0) {
@@ -483,6 +488,7 @@ function update() {
 }
 
 function tileHitsGroundOrBlock() {
+  brick.setVelocityY(0);
   //console.log(lines);
   //lineoffour = checkLineofFourX(bottomrow);
   //console.log(lineoffour);
@@ -526,7 +532,11 @@ function tileHitsGroundOrBlock() {
 
   //Length not right ??????
   console.log(brick.children.entries);
+  var verticallyalligned = false;
 
+  if(brick.children.entries.length > 1 && brick.children.entries[0].x >= brick.children.entries[1].x - 5 && brick.children.entries[0].x <= brick.children.entries[1].x + 5) {
+    verticallyalligned = true;
+  }
 
   for(var i=0;i<brick.children.entries.length;i++) {
     var child = brick.children.entries[i];
@@ -540,10 +550,15 @@ function tileHitsGroundOrBlock() {
     }
     if(child.body.blocked.down || child.y > stackheight) {
       //console.log(Math.round((child.body.y+1)));
-      //stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y+1) / 60) * 60,child.texture);
+      stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y+1) / 60) * 60,child.texture);
+      //Line below is *HOPEFULLY* fixing the fallthrough issue
+      if(!verticallyalligned) {
+        brick.children.entries.forEach(brick => brick.body.y = child.body.y+1);
+      }
       //alert("CREATED");
-      stack.create(((Math.round(child.body.x / 60) * 60)), stackheight-60,child.texture);
+      //stack.create(((Math.round(child.body.x / 60) * 60)), stackheight-60,child.texture);
       child.destroy();
+      //Clear gaps
     }
   }
 
@@ -586,6 +601,7 @@ function tileHitsGroundOrBlock() {
 
     //console.log(lines);
     //If a match is detected then we need to do something with the blocks
+
     if(lines.length > 0) {
       for(var i=0;i<lines.length;i++) {
         for(var j=0;j<lines[i].length;j++) {
@@ -626,7 +642,10 @@ function tileHitsGroundOrBlock() {
     this.lines = []
   }
 
-  if(topofstack.length == 0 && brick.children.entries.length == 0) {
+  var flashingtiles = stack.children.entries.filter(tile => (tile.flashcount == 0));
+
+
+  if(topofstack.length == 0 && brick.children.entries.length == 0 && flashingtiles.length == 0) {
     //Add to stack
     //children.entries.forEach(child => stack.add(child));
     //children.entries.forEach(child => console.log(child));
@@ -638,7 +657,7 @@ function tileHitsGroundOrBlock() {
     brick.create(420, 0, 'tile'+randomNumber(1,6));
     //brick.children.each(child => child.body.checkCollision.left = false);
     //brick.children.each(child => child.body.checkCollision.right = false);
-    brick.children.each(child => child.body.setSize(58,60,29));
+    brick.children.each(child => child.body.setSize(50,60,29));
     //console.log("Here");
     //ground.body.setAllowGravity(false);
     //ground.setVelocityY(0);
