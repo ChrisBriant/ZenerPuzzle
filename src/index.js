@@ -291,6 +291,13 @@ function destroyFlashingTile(x,y) {
   destroytile[0].destroy();
 }
 
+//Work around the issue where graphics is not detected
+function killAllGraphics() {
+  for(var i=0;i<flashgraphics.length;i++) {
+    flashgraphics[0].destroy();
+  }
+}
+
 //Calculate the score
 function scoreTiles(tiles) {
   var scoretiles = [];
@@ -334,16 +341,21 @@ function realignStack() {
   for (var i = 0; i < 840; i+= 60) {
     //Get column
     var col = stack.children.entries.filter(child => child.x == i)
-    col.sort(function(a, b){return b.body.y - a.body.y});
+    col.sort(function(a, b){return b.y - a.y});
+    //console.log("This is the stack of poo");
+    //stack.children.entries.forEach(child => console.log(child.y));
     //Set the current column
     var currcol = 0;
     var end = false;
     //Iterate through gaps
-    for(var j = 520; j > 60; j-= 60) {
+    for(var j = 540; j > 60; j-= 60) {
         if(col.length > 0 && !end) {
           //Check next sprite is not adjacent
-          if(!(j + 20 >= col[currcol].body.y && j - 20 <= col[currcol].body.y)) {
+          if(!(j == col[currcol].y )) {
+          //if(!(j + 20 >= col[currcol].body.y && j - 20 <= col[currcol].body.y)) {
             //Gap detected
+            console.log(j);
+            console.log(col[currcol].y);
             alert("GAP DETECTED");
             //Move tile down
             stack.create(col[currcol].body.x+30, col[currcol].body.y+90, col[currcol].texture);
@@ -365,10 +377,7 @@ function realignStack() {
 
 
 function update() {
-  if(brick.children.entries.length == 0) {
-    realignStack();
-  }
-
+  //realignStack();
   //Get all of the flashing tiles
   var flashingtiles = stack.children.entries.filter(tile => (tile.flashcount == 0));
 
@@ -398,6 +407,12 @@ function update() {
 
     }
   } else {
+    if(flashgraphics.length > 0) {
+      //killAllGraphics();
+    }
+    if(this.tweens.length > 0) {
+      alert("still tweens");
+    }
     //Create a new brick if it is now destroyed
     /*
     if(brick.children.entries.length == 0) {
@@ -497,6 +512,7 @@ function update() {
     brick.create(360, 0, 'tile'+randomNumber(1,6));
     brick.create(420, 0, 'tile'+randomNumber(1,6));
     brick.children.each(child => child.body.setSize(50,60,29));
+    realignStack();
     justdestroyed =false;
   }
 }
@@ -608,36 +624,42 @@ function tileHitsGroundOrBlock() {
     verticallyalligned = true;
   }
 
-  for(var i=0;i<brick.children.entries.length;i++) {
-    var child = brick.children.entries[i];
-    //console.log(i);
-    //console.log("touching");
-    //console.log(child.body.touching);
-    //console.log(child.y);
-    if(child.y > stackheight) {
-      console.log(child);
-      //alert("More than stackheight");
-    }
+  console.log(brick.children.entries.length);
 
-    if(verticallyalligned || brick.children.entries.length == 1) {
-      for(var i=0;i<brick.children.entries.length;i++) {
-        child = brick.children.entries[i];
-        stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y+1) / 60) * 60,child.texture);
-      }
-    }
-
-    if(child.body.blocked.down || child.y > stackheight) {
-      //console.log(Math.round((child.body.y+1)));
-      //Line below is *HOPEFULLY* fixing the fallthrough issue
-      if(!verticallyalligned) {
-        stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y+1) / 60) * 60,child.texture);
-        brick.children.entries.forEach(brick => brick.body.y = child.body.y+1);
-      } else {
-        //brick.children.entries.forEach(brick => brick.body.y = child.body.x+1);
-      }
-      //alert("CREATED");
-      //stack.create(((Math.round(child.body.x / 60) * 60)), stackheight-60,child.texture);
+  if(verticallyalligned || brick.children.entries.length == 1) {
+    for(var i=0;i<brick.children.entries.length;i++) {
+      child = brick.children.entries[i];
+      console.log("THE MATH");
+      //console.log(Math.round(child.body.x / 60) * 60);
+      console.log(Math.round((child.y+1)/60)*60);
+      stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y+1) / 60) * 60,child.texture);
       child.destroy();
+    }
+  } else {
+    for(var i=0;i<brick.children.entries.length;i++) {
+      var child = brick.children.entries[i];
+      //console.log(i);
+      //console.log("touching");
+      //console.log(child.body.touching);
+      //console.log(child.y);
+      if(child.y > stackheight) {
+        console.log(child);
+        //alert("More than stackheight");
+      }
+
+      if(child.body.blocked.down || child.y > stackheight) {
+        //console.log(Math.round((child.body.y+1)));
+        //Line below is *HOPEFULLY* fixing the fallthrough issue
+        if(!verticallyalligned) {
+          stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y+1) / 60) * 60,child.texture);
+          brick.children.entries.forEach(brick => brick.body.y = child.body.y+1);
+        } else {
+          //brick.children.entries.forEach(brick => brick.body.y = child.body.x+1);
+        }
+        //alert("CREATED");
+        //stack.create(((Math.round(child.body.x / 60) * 60)), stackheight-60,child.texture);
+        child.destroy();
+      }
     }
   }
 
@@ -654,6 +676,8 @@ function tileHitsGroundOrBlock() {
   } else {
     console.log(stack);
   }
+
+  //realignStack();
 
   if(flashgraphics.length > 0) {
     //alert("Graphics Exists");
