@@ -10,7 +10,7 @@ const config = {
     default: 'arcade',
     arcade: {
         gravity: { y: 300, x:1 },
-        debug: false
+        debug: true
     }
   },
   width: 800,
@@ -38,6 +38,7 @@ let flashgraphics = [];
 let flashing = false;
 let falling = false;
 let justdestroyed = false;
+let graphics;
 
 let updatecount = 0;
 let stackCollider;
@@ -340,9 +341,14 @@ function scoreTiles(tiles) {
 
 
 function realignStack() {
+  var gapdetected = false;
+  var destroySet = [];
+
   for (var i = 0; i < 840; i+= 60) {
     //Get column
-    var col = stack.children.entries.filter(child => child.x == i)
+    var c = stack.children.entries.filter(child => child.x == i);
+    //c.forEach(item => item.destroy());
+    var col = [...c];
     col.sort(function(a, b){return b.y - a.y});
     if(col.length > 0) {
       //alignCol(col,0);
@@ -352,25 +358,32 @@ function realignStack() {
       while(j > minsize) {
         //if(col[k].y <= j -5 && col[k].y >= j +5 ) {
         if(col[k].y != j) {
-          var newx = col[k].x
-          var newy = col[k].y
-          var newt = col[k].texture
-          stack.remove(col[k]);
-          //col[k].setPosition(col[k].x,j);
+          gapdetected = true;
+          //var newx = col[k].x
+          //var newy = col[k].y
+          //var newt = col[k].texture
+          //stack.remove(col[k]);
+          col[k].setPosition(col[k].x,j).refreshBody();
           //col[k].setSize(50,60,29);
           //console.log(col[k].height);
-          stack.create(newx,newy,newt);
+          //stack.create(newx,newy,newt);
           minsize = Math.min.apply(Math, col.map(function(t) { return t.y; }));
-          //col[k].destroy();
-          //console.log(col[k].y);
-          alert("Gap");
         }
         j -= 60;
         k++;
       }
+      if(gapdetected) {
+        col.forEach(i => console.log(i.height));
+        console.log(stack);
+        //thisscene.pause();
+        gapdetected = false;
+      }
+      //c.forEach(item => item.destroy());
+      //col.forEach(item => stack.create(item.x,item.y,item.texture));
+      col = [];
+      //c.forEach(item => item.destroy());
     }
   }
-
 }
 
 
@@ -378,7 +391,7 @@ function update() {
   if(updatecount == 10) {
     realignStack();
     detectLines();
-  } else {
+    } else {
     updatecount += 1
   }
   //Get all of the flashing tiles
@@ -390,7 +403,7 @@ function update() {
     brick.setVelocityY(0);
 
     for(var i=0;i<flashingtiles.length;i++) {
-      var graphics = this.add.graphics({
+      graphics = this.add.graphics({
         x: flashingtiles[i].x-30,
         y: flashingtiles[i].y-30
       })
@@ -521,6 +534,10 @@ function update() {
     brick.create(420, 0, 'tile'+randomNumber(1,6));
     brick.children.each(child => child.body.setSize(50,60,29));
     justdestroyed =false;
+    this.tweens.killAll();
+    //There is a problem where the graphics remains on the screen still
+    graphics.clear();
+    graphics.destroy();
   }
 }
 
@@ -564,8 +581,12 @@ function detectLines() {
         for(var j=0;j<lines[i].length;j++) {
           scoreTiles(lines[i][j]);
           if (score > 0) {
+            //this.add.text(35, 50, pad(score), { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
             console.log("Score");
             console.log(score);
+            console.log(scoretext);
+            scoretext.setText(pad(score));
+            //thescene.pause();
           }
           //Deal with vertical
           if(lines[i][j].type === 'V') {
@@ -602,11 +623,6 @@ function detectLines() {
   lines = [];
 }
 
-function getYPositioninStack(y){
-  console.log("Y is");
-  console.log((Math.round((y+1) / 60) * 60));
-  alert("mrY");
-}
 
 function tileHitsGroundOrBlock() {
   updatecount = 0;
@@ -651,7 +667,7 @@ function tileHitsGroundOrBlock() {
       //console.log(Math.round(child.body.x / 60) * 60);
       //console.log(Math.round((child.y+1)/60)*60);
       //getYPositioninStack(child.body.y);
-      newBricksArray.push({x:((Math.round(child.body.x / 60) * 60)),y:Math.round((child.body.y) / 60) * 60,t:child.texture});
+      newBricksArray.push({x:((Math.round(child.body.x / 60) * 60)),y:Math.round((child.body.y+1) / 60) * 60,t:child.texture});
       //stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y) / 60) * 60,child.texture);
       child.destroy();
     }
@@ -697,16 +713,15 @@ function tileHitsGroundOrBlock() {
     brick.create(360, 0, 'tile'+randomNumber(1,6));
     brick.create(420, 0, 'tile'+randomNumber(1,6));
     brick.children.each(child => child.body.setSize(50,60,29));
-    groundCollider = this.physics.add.collider(brick, ground, tileHitsGroundOrBlock,null,this);
-    stackCollider = this.physics.add.collider(brick, stack, tileHitsGroundOrBlock,null,this);
+    //groundCollider = this.physics.add.collider(brick, ground, tileHitsGroundOrBlock,null,this);
+    //stackCollider = this.physics.add.collider(brick, stack, tileHitsGroundOrBlock,null,this);
   } else {
     console.log(stack);
   }
 
+  console.log("graphics");
+  console.log(graphics);
 
-  if(flashgraphics.length > 0) {
-    //alert("Graphics Exists");
-  }
   if(topofstack) {
     for(var i=0; i<stack.children.entries.length;i++)
     {
