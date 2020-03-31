@@ -18,6 +18,8 @@ let flashing = false;
 let falling = false;
 let justdestroyed = false;
 let graphics;
+let level = 3;
+let thisLevelGoals;
 
 let updatecount = 0;
 let stackCollider;
@@ -96,8 +98,8 @@ const config = {
   },
   width: 800,
   height: 600,
-  scene: [ StartScreen, { key:"MainGame", preload: preload, create: create, update: update } ]
-  //scene: [ StartScreen, MainGame ]
+  //scene: [ StartScreen, { key:"MainGame", preload: preload, create: create, update: update } ]
+  scene: [ { key:"MainGame", preload: preload, create: create, update: update }  ]
 };
 
 
@@ -108,6 +110,8 @@ const game = new Phaser.Game(config);
 function preload() {
   //this.load.image("logo", logoImg);
   //this.load.image('tile1', tile1);
+  this.load.json('levelData', './src/assets/levels.json');
+
   this.load.image('tile1', './src/assets/bricks/tile1.png');
   this.load.image('tile2', './src/assets/bricks/tile2.png');
   this.load.image('tile3', './src/assets/bricks/tile3.png');
@@ -123,13 +127,57 @@ function pad(num, size) {
     return s.substr(s.length-size);
 }
 
+function setLevelGoals(leveldata, thisscene) {
+  //Global level goals
+  thisLevelGoals = leveldata['level'+level]['goals'];
+
+  thisscene.add.text(60, 330, 'GOALS:', { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+  if(leveldata['level'+level]['goals']['tile1'] > 0) {
+    thisscene.add.image(60,370,'tile1').setScale(0.325);
+    thisscene.add.image(80,370,'tile1').setScale(0.325);
+    thisscene.add.image(100,370,'tile1').setScale(0.325);
+    thisscene.add.image(120,370,'tile1').setScale(0.325);
+    thisscene.add.text(140, 360, 'x'+leveldata['level'+level]['goals']['tile1'], { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+  }
+  if(leveldata['level'+level]['goals']['tile2'] > 0) {
+    thisscene.add.image(60,400,'tile2').setScale(0.325);
+    thisscene.add.image(80,400,'tile2').setScale(0.325);
+    thisscene.add.image(100,400,'tile2').setScale(0.325);
+    thisscene.add.image(120,400,'tile2').setScale(0.325);
+    thisscene.add.text(140, 390, 'x'+leveldata['level'+level]['goals']['tile2'], { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+  }
+  if(leveldata['level'+level]['goals']['tile3'] > 0) {
+    thisscene.add.image(60,430,'tile3').setScale(0.325);
+    thisscene.add.image(80,430,'tile3').setScale(0.325);
+    thisscene.add.image(100,430,'tile3').setScale(0.325);
+    thisscene.add.image(120,430,'tile3').setScale(0.325);
+    thisscene.add.text(140, 420, 'x'+leveldata['level'+level]['goals']['tile3'], { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+  }
+  if(leveldata['level'+level]['goals']['tile4'] > 0) {
+    thisscene.add.image(60,460,'tile4').setScale(0.325);
+    thisscene.add.image(80,460,'tile4').setScale(0.325);
+    thisscene.add.image(100,460,'tile4').setScale(0.325);
+    thisscene.add.image(120,460,'tile4').setScale(0.325);
+    thisscene.add.text(140, 450, 'x'+leveldata['level'+level]['goals']['tile4'], { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+  }
+  if(leveldata['level'+level]['goals']['tile5'] > 0) {
+    thisscene.add.image(60,490,'tile5').setScale(0.325);
+    thisscene.add.image(80,490,'tile5').setScale(0.325);
+    thisscene.add.image(100,490,'tile5').setScale(0.325);
+    thisscene.add.image(120,490,'tile5').setScale(0.325);
+    thisscene.add.text(140, 480, 'x'+leveldata['level'+level]['goals']['tile5'], { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+  }
+}
+
 function create() {
   //console.log(this.physics.overlap(brick,stack));
   //const logo = this.add.image(400, 150, "logo");
 
   //const logo = this.add.image(400, 150, "tile1");
+  var levelData = this.cache.json.get('levelData');
+  console.log(levelData);
+  setLevelGoals(levelData, this);
 
-  console.log(this.scene);
 
   cursors = this.input.keyboard.createCursorKeys();
   brick = this.physics.add.group();
@@ -446,6 +494,8 @@ function realignStack() {
 
 
 function update() {
+  this.scene.pause();
+
   if(updatecount == 10) {
     realignStack();
     detectLines();
