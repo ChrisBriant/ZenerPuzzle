@@ -8,6 +8,7 @@ let ground;
 let rightwall;
 let leftwall;
 let stack;
+let stackCopy = [];
 let cursors;
 let score = 0;
 let scoretext;
@@ -18,7 +19,7 @@ let flashing = false;
 let falling = false;
 let justdestroyed = false;
 let graphics;
-let level = 3;
+let level = 1;
 //Goals
 let thisLevelGoals;
 let tile1GText;
@@ -105,8 +106,15 @@ var LevelStart = new Phaser.Class({
 
     preload: function ()
     {
-        //this.load.image('logo', './src/assets/logo.png');
-        //this.load.image('bricklogo', './src/assets/bricklogo.png');
+      this.load.json('levelData', './src/assets/levels.json');
+
+      this.load.image('tile1', './src/assets/bricks/tile1.png');
+      this.load.image('tile2', './src/assets/bricks/tile2.png');
+      this.load.image('tile3', './src/assets/bricks/tile3.png');
+      this.load.image('tile4', './src/assets/bricks/tile4.png');
+      this.load.image('tile5', './src/assets/bricks/tile5.png');
+      this.load.image('ground', './src/assets/platform.png');
+      this.load.image('block30x30', './src/assets/bricks/block30x30.png');
     },
 
     create: function ()
@@ -121,17 +129,24 @@ var LevelStart = new Phaser.Class({
       this.text.fill = '#ec008c';
       this.text.setShadow(0, 0, 'rgba(0, 0, 0, 0.5)', 0);
       this.cameras.main.setBackgroundColor('rgba(0, 0, 0, 0)')
-      this.scene.start('MainGame');
 
-        /*
-        this.blinkOff = true;
-        this.timer = this.time.addEvent({
-          delay: 500,
-          callback: this.blinkText,
-          callbackScope: this,
-          loop: true
-        });
-        console.log(this); */
+      //Create the scene
+      setLevelGoals(this.cache.json.get('levelData'), this);
+      this.add.tileSprite(400, 585, 800, 30, "block30x30");
+      this.add.tileSprite(780, 300, 60, 595, "block30x30");
+      this.add.tileSprite(195, 300, 30, 595, "block30x30");
+      this.add.tileSprite(15, 300, 30, 595, "block30x30");
+      this.add.tileSprite(90, 15, 240, 30, "block30x30");
+      //Game text
+      this.add.text(35, 30, 'Score:', { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+      this.add.text(35, 50, pad(score), { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+
+      this.timer = this.time.addEvent({
+        delay: 2000,
+        callback: this.nextScene,
+        callbackScope: this,
+        loop: true
+      });
     },
 
     update: function()
@@ -142,19 +157,82 @@ var LevelStart = new Phaser.Class({
       }*/
     },
 
-    /*
-    blinkText: function() {
-      console.log(this.presstart);
-      if(this.blinkOff) {
-        //this.children.list[5].visible = false;
-        this.presstart.visible = false;
-        this.blinkOff = false;
-      } else {
-        //this.children.list[5].visible = true;
-        this.presstart.visible = true;
-        this.blinkOff = true;
-      }
-    }*/
+    nextScene: function() {
+      this.scene.start('MainGame');
+    }
+
+});
+
+
+var LevelComplete = new Phaser.Class({
+    Extends: Phaser.Scene,
+    initialize:
+    function LevelComplete() {
+        Phaser.Scene.call(this, { key: 'LevelComplete' });
+    },
+
+    preload: function ()
+    {
+      this.load.json('levelData', './src/assets/levels.json');
+
+      this.load.image('tile1', './src/assets/bricks/tile1.png');
+      this.load.image('tile2', './src/assets/bricks/tile2.png');
+      this.load.image('tile3', './src/assets/bricks/tile3.png');
+      this.load.image('tile4', './src/assets/bricks/tile4.png');
+      this.load.image('tile5', './src/assets/bricks/tile5.png');
+      this.load.image('ground', './src/assets/platform.png');
+      this.load.image('block30x30', './src/assets/bricks/block30x30.png');
+    },
+
+    create: function ()
+    {
+      this.text = this.add.text(400, 250, 'Level ' + level + ' Complete');
+      //this.text.anchor.set(0.5);
+      this.text.align = 'center';
+
+      this.text.font = 'Arial Black';
+      this.text.fontSize = 70;
+      this.text.fontWeight = 'bold';
+      this.text.fill = '#ec008c';
+      this.text.setShadow(0, 0, 'rgba(0, 0, 0, 0.5)', 0);
+      this.cameras.main.setBackgroundColor('rgba(0, 0, 0, 0)')
+
+      //Create the scene
+      setLevelGoals(this.cache.json.get('levelData'), this);
+      this.add.tileSprite(400, 585, 800, 30, "block30x30");
+      this.add.tileSprite(780, 300, 60, 595, "block30x30");
+      this.add.tileSprite(195, 300, 30, 595, "block30x30");
+      this.add.tileSprite(15, 300, 30, 595, "block30x30");
+      this.add.tileSprite(90, 15, 240, 30, "block30x30");
+      //Game text
+      this.add.text(35, 30, 'Score:', { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+      this.add.text(35, 50, pad(score), { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+      this.stack = this.physics.add.staticGroup();
+      console.log('hi');
+      stackCopy.forEach(item => this.stack.create(item.x, item.y,item.texture));
+      //this.stackCopy = stack;
+
+      this.timer = this.time.addEvent({
+        delay: 2000,
+        callback: this.nextScene,
+        callbackScope: this,
+        loop: true
+      });
+    },
+
+    update: function()
+    {
+      /*
+      if (this.cursors.space.isDown) {
+        this.scene.start('MainGame');
+      }*/
+    },
+
+    nextScene: function() {
+      level += 1;
+      this.scene.pause();
+      //this.scene.start('LevelStart');
+    }
 
 });
 
@@ -171,7 +249,7 @@ const config = {
   width: 800,
   height: 600,
   //scene: [ StartScreen, { key:"MainGame", preload: preload, create: create, update: update } ]
-  scene: [ LevelStart, { key:"MainGame", preload: preload, create: create, update: update }  ]
+  scene: [ LevelStart, { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete  ]
 };
 
 
@@ -182,15 +260,6 @@ const game = new Phaser.Game(config);
 function preload() {
   //this.load.image("logo", logoImg);
   //this.load.image('tile1', tile1);
-  this.load.json('levelData', './src/assets/levels.json');
-
-  this.load.image('tile1', './src/assets/bricks/tile1.png');
-  this.load.image('tile2', './src/assets/bricks/tile2.png');
-  this.load.image('tile3', './src/assets/bricks/tile3.png');
-  this.load.image('tile4', './src/assets/bricks/tile4.png');
-  this.load.image('tile5', './src/assets/bricks/tile5.png');
-  this.load.image('ground', './src/assets/platform.png');
-  this.load.image('block30x30', './src/assets/bricks/block30x30.png');
 }
 
 //for score
@@ -298,14 +367,6 @@ function create() {
 }
 
 
-/*
-function checkInsideSprite(x,y,sprite) {
-  if(sprite.body.left < x && sprite.body.right > x && sprite.body.top < y && sprite.body.bottom > y) {
-    return true;
-  } else {
-    return false;
-  }
-}*/
 function adjacent(sprite1,sprite2,axis) {
   if (axis === 'Y') {
     if(sprite2.body.y < sprite1.body.y + 65 && sprite2.body.y > sprite1.body.y + 55) {
@@ -407,15 +468,6 @@ function checkLineofFourX(spritearray) {
       }
     }
   }
-  /*
-  if(matches.length > 0) {
-    console.log("MATCH");
-    console.log(spritearray);
-    console.log(matches);
-    var consolodatedtiles = consolidateTilesX(matches);
-    console.log(consolodatedtiles);
-    alert("Match");
-  }*/
   var consolodatedtiles = consolidateTilesX(matches);
   return consolodatedtiles;
 }
@@ -472,7 +524,7 @@ function killAllGraphics() {
 }
 
 //Calculate the score
-function scoreTiles(tiles) {
+function scoreTiles(tiles,thisscene) {
   var scoretiles = [];
 
   for(var i=0;i<tiles.matchedtiles.length;i++) {
@@ -526,7 +578,9 @@ function scoreTiles(tiles) {
   var toGoal = thisLevelGoals['tile1'] +  thisLevelGoals['tile2'] + thisLevelGoals['tile3'] +
           thisLevelGoals['tile4'] + thisLevelGoals['tile5'];
   if(toGoal == 0) {
-    alert("Goal Reached");
+    //Copy the stack data and transition to next scene
+    stack.children.entries.forEach(child => stackCopy.push({'x':child.x,'y':child.y,'texture':child.texture}));
+    thisscene.scene.start('LevelComplete');
   }
 }
 
@@ -580,11 +634,12 @@ function realignStack() {
 
 
 function update() {
-  this.scene.pause();
+  //this.scene.pause();
+  //this.scene.start('LevelComplete');
 
   if(updatecount == 10) {
     realignStack();
-    detectLines();
+    detectLines(this);
     } else {
     updatecount += 1
   }
@@ -722,7 +777,7 @@ function update() {
   }
 }
 
-function detectLines() {
+function detectLines(thisscene) {
   if(brick.children.entries.length == 0) {
     //Detect line creation
     //HORIZONTAL LINES
@@ -760,7 +815,7 @@ function detectLines() {
     if(lines.length > 0) {
       for(var i=0;i<lines.length;i++) {
         for(var j=0;j<lines[i].length;j++) {
-          scoreTiles(lines[i][j]);
+          scoreTiles(lines[i][j],thisscene);
           if (score > 0) {
             //this.add.text(35, 50, pad(score), { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
             console.log("Score");
@@ -884,7 +939,7 @@ function tileHitsGroundOrBlock() {
     }
   }
 
-  detectLines();
+  detectLines(this);
 
   var flashingtiles = stack.children.entries.filter(tile => (tile.flashcount == 0));
 
@@ -909,4 +964,5 @@ function tileHitsGroundOrBlock() {
       console.log(stack.children.entries[i].y);
     }
   }
+
 }
