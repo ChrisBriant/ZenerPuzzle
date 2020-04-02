@@ -19,7 +19,14 @@ let falling = false;
 let justdestroyed = false;
 let graphics;
 let level = 3;
+//Goals
 let thisLevelGoals;
+let tile1GText;
+let tile2GText;
+let tile3GText;
+let tile4GText;
+let tile5GText;
+
 
 let updatecount = 0;
 let stackCollider;
@@ -28,6 +35,8 @@ let groundCollider;
 let bottomrow;
 let lineoffour;
 //let lines = [];
+
+
 
 
 var StartScreen = new Phaser.Class({
@@ -86,6 +95,69 @@ var StartScreen = new Phaser.Class({
 });
 
 
+
+var LevelStart = new Phaser.Class({
+    Extends: Phaser.Scene,
+    initialize:
+    function LevelStart() {
+        Phaser.Scene.call(this, { key: 'LevelStart' });
+    },
+
+    preload: function ()
+    {
+        //this.load.image('logo', './src/assets/logo.png');
+        //this.load.image('bricklogo', './src/assets/bricklogo.png');
+    },
+
+    create: function ()
+    {
+      this.text = this.add.text(400, 250, 'Level ' + level);
+      //this.text.anchor.set(0.5);
+      this.text.align = 'center';
+
+      this.text.font = 'Arial Black';
+      this.text.fontSize = 70;
+      this.text.fontWeight = 'bold';
+      this.text.fill = '#ec008c';
+      this.text.setShadow(0, 0, 'rgba(0, 0, 0, 0.5)', 0);
+      this.cameras.main.setBackgroundColor('rgba(0, 0, 0, 0)')
+      this.scene.start('MainGame');
+
+        /*
+        this.blinkOff = true;
+        this.timer = this.time.addEvent({
+          delay: 500,
+          callback: this.blinkText,
+          callbackScope: this,
+          loop: true
+        });
+        console.log(this); */
+    },
+
+    update: function()
+    {
+      /*
+      if (this.cursors.space.isDown) {
+        this.scene.start('MainGame');
+      }*/
+    },
+
+    /*
+    blinkText: function() {
+      console.log(this.presstart);
+      if(this.blinkOff) {
+        //this.children.list[5].visible = false;
+        this.presstart.visible = false;
+        this.blinkOff = false;
+      } else {
+        //this.children.list[5].visible = true;
+        this.presstart.visible = true;
+        this.blinkOff = true;
+      }
+    }*/
+
+});
+
 const config = {
   type: Phaser.AUTO,
   parent: "phaser-example",
@@ -99,7 +171,7 @@ const config = {
   width: 800,
   height: 600,
   //scene: [ StartScreen, { key:"MainGame", preload: preload, create: create, update: update } ]
-  scene: [ { key:"MainGame", preload: preload, create: create, update: update }  ]
+  scene: [ LevelStart, { key:"MainGame", preload: preload, create: create, update: update }  ]
 };
 
 
@@ -137,35 +209,35 @@ function setLevelGoals(leveldata, thisscene) {
     thisscene.add.image(80,370,'tile1').setScale(0.325);
     thisscene.add.image(100,370,'tile1').setScale(0.325);
     thisscene.add.image(120,370,'tile1').setScale(0.325);
-    thisscene.add.text(140, 360, 'x'+leveldata['level'+level]['goals']['tile1'], { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+    tile1GText = thisscene.add.text(140, 360, 'x' + leveldata['level'+level]['goals']['tile1'] , { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
   }
   if(leveldata['level'+level]['goals']['tile2'] > 0) {
     thisscene.add.image(60,400,'tile2').setScale(0.325);
     thisscene.add.image(80,400,'tile2').setScale(0.325);
     thisscene.add.image(100,400,'tile2').setScale(0.325);
     thisscene.add.image(120,400,'tile2').setScale(0.325);
-    thisscene.add.text(140, 390, 'x'+leveldata['level'+level]['goals']['tile2'], { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+    tile2GText = thisscene.add.text(140, 390,'x'+leveldata['level'+level]['goals']['tile2'], { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
   }
   if(leveldata['level'+level]['goals']['tile3'] > 0) {
     thisscene.add.image(60,430,'tile3').setScale(0.325);
     thisscene.add.image(80,430,'tile3').setScale(0.325);
     thisscene.add.image(100,430,'tile3').setScale(0.325);
     thisscene.add.image(120,430,'tile3').setScale(0.325);
-    thisscene.add.text(140, 420, 'x'+leveldata['level'+level]['goals']['tile3'], { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+    tile3GText = thisscene.add.text(140, 420, 'x'+leveldata['level'+level]['goals']['tile3'], { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
   }
   if(leveldata['level'+level]['goals']['tile4'] > 0) {
     thisscene.add.image(60,460,'tile4').setScale(0.325);
     thisscene.add.image(80,460,'tile4').setScale(0.325);
     thisscene.add.image(100,460,'tile4').setScale(0.325);
     thisscene.add.image(120,460,'tile4').setScale(0.325);
-    thisscene.add.text(140, 450, 'x'+leveldata['level'+level]['goals']['tile4'], { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+    tile4GText = thisscene.add.text(140, 450, 'x'+leveldata['level'+level]['goals']['tile4'], { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
   }
   if(leveldata['level'+level]['goals']['tile5'] > 0) {
     thisscene.add.image(60,490,'tile5').setScale(0.325);
     thisscene.add.image(80,490,'tile5').setScale(0.325);
     thisscene.add.image(100,490,'tile5').setScale(0.325);
     thisscene.add.image(120,490,'tile5').setScale(0.325);
-    thisscene.add.text(140, 480, 'x'+leveldata['level'+level]['goals']['tile5'], { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+    tile5GText = thisscene.add.text(140, 480, 'x'+leveldata['level'+level]['goals']['tile5'], { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
   }
 }
 
@@ -381,17 +453,6 @@ function checkLineofFourY(spritearray) {
       }
     }
   }
-  /*
-  if(matches.length > 0) {
-    console.log("MATCH");
-    console.log(spritearray);
-    console.log(matches);
-    var consolodatedtiles = consolidateTilesY(matches);
-    console.log(consolodatedtiles);
-    alert("Match");
-  } else {
-    consolodatedtiles = [];
-  } */
   var consolodatedtiles = consolidateTilesY(matches);
   return consolodatedtiles;
 }
@@ -430,18 +491,43 @@ function scoreTiles(tiles) {
 
   if (tilesof1.length > 0) {
     score += tilesof1.length * 10;
+    if(thisLevelGoals['tile1'] > 0) {
+      thisLevelGoals['tile1'] -= 1;
+      tile1GText.setText('x' + thisLevelGoals['tile1']);
+    }
   } else if (tilesof2.length > 0) {
     score += tilesof2.length * 10;
+    if(thisLevelGoals['tile2'] > 0) {
+      thisLevelGoals['tile2'] -= 1;
+      tile2GText.setText('x' + thisLevelGoals['tile2']);
+    }
   } else if (tilesof3.length > 0) {
     score += tilesof3.length * 10;
+    if(thisLevelGoals['tile3'] > 0) {
+      thisLevelGoals['tile3'] -= 1;
+      tile3GText.setText('x' + thisLevelGoals['tile3']);
+    }
   } else if (tilesof4.length > 0) {
     score += tilesof4.length * 10;
+    if(thisLevelGoals['tile4'] > 0) {
+      thisLevelGoals['tile4'] -= 1;
+      tile4GText.setText('x' + thisLevelGoals['tile4']);
+    }
   } else if (tilesof5.length > 0) {
     score += tilesof5.length * 10;
+    if(thisLevelGoals['tile5'] > 0) {
+      thisLevelGoals['tile5'] -= 1;
+      tile5GText.setText('x' + thisLevelGoals['tile5']);
+    }
   }
 
   //Set the tiles to scored
   nonscored.forEach(tile => tile.scored = true);
+  var toGoal = thisLevelGoals['tile1'] +  thisLevelGoals['tile2'] + thisLevelGoals['tile3'] +
+          thisLevelGoals['tile4'] + thisLevelGoals['tile5'];
+  if(toGoal == 0) {
+    alert("Goal Reached");
+  }
 }
 
 
@@ -531,19 +617,6 @@ function update() {
 
     }
   } else {
-    if(flashgraphics.length > 0) {
-      //killAllGraphics();
-    }
-    if(this.tweens.length > 0) {
-      alert("still tweens");
-    }
-    //Create a new brick if it is now destroyed
-    /*
-    if(brick.children.entries.length == 0) {
-      brick.create(360, 0, 'tile'+randomNumber(1,6));
-      brick.create(420, 0, 'tile'+randomNumber(1,6));
-      brick.children.each(child => child.body.setSize(50,60,29));
-    }*/
     // Configure the controls!
     if (!cursors.down.isDown) {
 
