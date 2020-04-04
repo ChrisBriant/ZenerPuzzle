@@ -19,6 +19,8 @@ let flashing = false;
 let falling = false;
 let justdestroyed = false;
 let graphics;
+let lives = 3;
+let lifetext;
 let level = 1;
 //Goals
 let thisLevelGoals;
@@ -35,8 +37,6 @@ let groundCollider;
 //Control variables - make local once tested
 let bottomrow;
 let lineoffour;
-//let lines = [];
-
 
 
 
@@ -49,17 +49,25 @@ var StartScreen = new Phaser.Class({
 
     preload: function ()
     {
+        this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
         this.load.image('logo', './src/assets/logo.png');
         this.load.image('bricklogo', './src/assets/bricklogo.png');
     },
 
+
     create: function ()
     {
+
+        WebFont.load({
+            google: {
+                families: [ 'Freckle Face', 'Finger Paint', 'Nosifer' ]
+            },
+        });
         this.logo = this.add.image(400, 100, 'logo');
         this.bricklogo = this.add.image(400,300,'bricklogo');
         this.add.text(260, 400, 'Controls:', { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
         this.add.text(260, 420, 'Arrow keys move the tiles', { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
-        this.add.text(260, 440, 'Spacebar rotates the block', { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+        this.add.text(260, 440, 'Spacebar rotates the block', { fontFamily: 'Finger Paint', fontSize: 20, color: '#ffffff' });
         this.presstart = this.add.text(260, 480, 'Press spacebar to start', { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
         this.cursors = this.input.keyboard.createCursorKeys();
 
@@ -76,7 +84,9 @@ var StartScreen = new Phaser.Class({
     update: function()
     {
       if (this.cursors.space.isDown) {
-        this.scene.start('MainGame');
+        lives = 3;
+        level = 1;
+        this.scene.start('LevelStart');
       }
     },
 
@@ -119,6 +129,14 @@ var LevelStart = new Phaser.Class({
 
     create: function ()
     {
+      this.text = this.add.text(400, 250, "- phaser -\nrocking with\ngoogle web fonts");
+      this.text.anchor.setTo(0.5);
+
+
+      this.text.font = 'Fontdiner Swanky';
+      this.text.fontSize = 60;
+
+      /*
       this.text = this.add.text(400, 250, 'Level ' + level);
       //this.text.anchor.set(0.5);
       this.text.align = 'center';
@@ -129,7 +147,7 @@ var LevelStart = new Phaser.Class({
       this.text.fill = '#ec008c';
       this.text.setShadow(0, 0, 'rgba(0, 0, 0, 0.5)', 0);
       this.cameras.main.setBackgroundColor('rgba(0, 0, 0, 0)')
-
+      */
       //Create the scene
       setLevelGoals(this.cache.json.get('levelData'), this);
       this.add.tileSprite(400, 585, 800, 30, "block30x30");
@@ -230,8 +248,87 @@ var LevelComplete = new Phaser.Class({
 
     nextScene: function() {
       level += 1;
-      this.scene.pause();
-      //this.scene.start('LevelStart');
+      this.scene.start('LevelStart');
+    }
+
+});
+
+
+var GameOver = new Phaser.Class({
+    Extends: Phaser.Scene,
+    initialize:
+    function GameOver() {
+        Phaser.Scene.call(this, { key: 'GameOver' });
+    },
+
+    preload: function ()
+    {
+      game.load.script('webfont', '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js');
+      this.load.json('levelData', './src/assets/levels.json');
+
+      this.load.image('tile1', './src/assets/bricks/tile1.png');
+      this.load.image('tile2', './src/assets/bricks/tile2.png');
+      this.load.image('tile3', './src/assets/bricks/tile3.png');
+      this.load.image('tile4', './src/assets/bricks/tile4.png');
+      this.load.image('tile5', './src/assets/bricks/tile5.png');
+      this.load.image('ground', './src/assets/platform.png');
+      this.load.image('block30x30', './src/assets/bricks/block30x30.png');
+    },
+
+    create: function ()
+    {
+      if(lives == 0) {
+        this.text = this.add.text(400, 250, 'Game Over');
+      } else {
+        this.text = this.add.text(400, 250, 'Opps Try Again');
+      }
+      //this.text.anchor.set(0.5);
+      this.text.align = 'center';
+
+      this.text.font = 'Arial Black';
+      this.text.fontSize = 70;
+      this.text.fontWeight = 'bold';
+      this.text.fill = '#ec008c';
+      this.text.setShadow(0, 0, 'rgba(0, 0, 0, 0.5)', 0);
+      this.cameras.main.setBackgroundColor('rgba(0, 0, 0, 0)')
+
+      //Create the scene
+      setLevelGoals(this.cache.json.get('levelData'), this);
+      this.add.tileSprite(400, 585, 800, 30, "block30x30");
+      this.add.tileSprite(780, 300, 60, 595, "block30x30");
+      this.add.tileSprite(195, 300, 30, 595, "block30x30");
+      this.add.tileSprite(15, 300, 30, 595, "block30x30");
+      this.add.tileSprite(90, 15, 240, 30, "block30x30");
+      //Game text
+      this.add.text(35, 30, 'Score:', { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+      this.add.text(35, 50, pad(score), { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
+      this.stack = this.physics.add.staticGroup();
+      console.log('hi');
+      stackCopy.forEach(item => this.stack.create(item.x, item.y,item.texture));
+      //this.stackCopy = stack;
+
+      this.timer = this.time.addEvent({
+        delay: 2000,
+        callback: this.nextScene,
+        callbackScope: this,
+        loop: true
+      });
+    },
+
+    update: function()
+    {
+      /*
+      if (this.cursors.space.isDown) {
+        this.scene.start('MainGame');
+      }*/
+    },
+
+    nextScene: function() {
+      if(lives == 0) {
+        this.scene.start('StartScreen');
+      } else {
+        this.scene.start('LevelStart');
+      }
     }
 
 });
@@ -249,12 +346,11 @@ const config = {
   width: 800,
   height: 600,
   //scene: [ StartScreen, { key:"MainGame", preload: preload, create: create, update: update } ]
-  scene: [ LevelStart, { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete  ]
+  scene: [ StartScreen, LevelStart, { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver  ]
 };
 
 
 const game = new Phaser.Game(config);
-
 
 
 function preload() {
@@ -308,6 +404,9 @@ function setLevelGoals(leveldata, thisscene) {
     thisscene.add.image(120,490,'tile5').setScale(0.325);
     tile5GText = thisscene.add.text(140, 480, 'x'+leveldata['level'+level]['goals']['tile5'], { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
   }
+
+  //Add lives
+  lifetext = thisscene.add.text(35, 180, 'Lives x'+lives, { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
 }
 
 function create() {
@@ -874,16 +973,7 @@ function tileHitsGroundOrBlock() {
   }
   console.log("STACKHEIGHT");
   console.log(stackheight);
-  /*
-  if(!(brick.children.entries[0].body.x >= brick.children.entries[1].body.x - 10 && brick.children.entries[0].body.x <= brick.children.entries[1].body.x + 10)) {
-     //horizontal orientated
-     var brick1y = brick.children.entries[0].body.y;
-     //brick.children.each(child => stack.create(child.body.x + 30, brick1y + 30,child.texture));
-     brick.children.each(child => stack.create(child.body.x + 30, (Math.floor(brick1y.body.y / 60) * 60) + 120,child.texture));
-   } else {
-     //brick.children.each(child => stack.create(child.body.x + 30, child.body.y + 30,child.texture));
-     brick.children.each(child => stack.create(child.body.x + 30, (Math.floor(child.body.y / 60) * 60) + 120,child.texture));
-   }*/
+
 
   console.log(brick.children.entries);
   var verticallyalligned = false;
@@ -958,11 +1048,9 @@ function tileHitsGroundOrBlock() {
   console.log("graphics");
   console.log(graphics);
 
-  if(topofstack) {
-    for(var i=0; i<stack.children.entries.length;i++)
-    {
-      console.log(stack.children.entries[i].y);
-    }
+  if(stackheight <= 120) {
+    lives -= 1;
+    this.scene.start('GameOver');
   }
 
 }
