@@ -57,12 +57,6 @@ var StartScreen = new Phaser.Class({
 
     create: function ()
     {
-
-        WebFont.load({
-            google: {
-                families: [ 'Freckle Face', 'Finger Paint', 'Nosifer' ]
-            },
-        });
         this.logo = this.add.image(400, 100, 'logo');
         this.bricklogo = this.add.image(400,300,'bricklogo');
         this.add.text(260, 400, 'Controls:', { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
@@ -116,6 +110,7 @@ var LevelStart = new Phaser.Class({
 
     preload: function ()
     {
+      this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
       this.load.json('levelData', './src/assets/levels.json');
 
       this.load.image('tile1', './src/assets/bricks/tile1.png');
@@ -129,12 +124,20 @@ var LevelStart = new Phaser.Class({
 
     create: function ()
     {
-      this.text = this.add.text(400, 250, "- phaser -\nrocking with\ngoogle web fonts");
-      this.text.anchor.setTo(0.5);
+      var add = this.add;
 
-
-      this.text.font = 'Fontdiner Swanky';
-      this.text.fontSize = 60;
+      WebFont.load({
+          google: {
+              families: [ 'Freckle Face', 'Finger Paint', 'Nosifer','Fontdiner Swanky' ]
+          },
+          active: function () {
+            this.lvltxt = add.text(360, 250, 'Level ' + level + '\nStart', { fontFamily: 'Fontdiner Swanky', fontSize: 60, color: '#7b4585' });
+            //this.lvltxt.align = 'center';
+            this.lvltxt.setStroke('#bbbe4b',8);
+            //this.lvltxt.strokeThickness = 2;
+            this.lvltxt.setShadow(5, 5, 'rgba(0,0,0,0.5)', 5)
+          }
+      });
 
       /*
       this.text = this.add.text(400, 250, 'Level ' + level);
@@ -176,7 +179,8 @@ var LevelStart = new Phaser.Class({
     },
 
     nextScene: function() {
-      this.scene.start('MainGame');
+      this.scene.pause();
+      //this.scene.start('MainGame');
     }
 
 });
@@ -346,7 +350,7 @@ const config = {
   width: 800,
   height: 600,
   //scene: [ StartScreen, { key:"MainGame", preload: preload, create: create, update: update } ]
-  scene: [ StartScreen, LevelStart, { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver  ]
+  scene: [ LevelStart, { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver  ]
 };
 
 
