@@ -3,7 +3,7 @@
     "goals": {
       "tile1": 1,
       "tile2": 0,
-      "tile3": 0,
+      "tile3": 2,
       "tile4": 0,
       "tile5": 0
     }
@@ -17,13 +17,49 @@
       "tile5": 2
     }
   },
-    "level3": {
+  "level3": {
+    "goals": {
+      "tile1": 0,
+      "tile2": 0,
+      "tile3": 1,
+      "tile4": 1,
+      "tile5": 2
+    }
+  },
+  "level4": {
+    "goals": {
+      "tile1": 0,
+      "tile2": 1,
+      "tile3": 1,
+      "tile4": 0,
+      "tile5": 2
+    }
+  },
+    "level5": {
       "goals": {
         "tile1": 1,
         "tile2": 1,
         "tile3": 1,
         "tile4": 1,
         "tile5": 1
+      }
+  },
+    "level88": {
+      "goals": {
+        "tile1": 10,
+        "tile2": 10,
+        "tile3": 10,
+        "tile4": 10,
+        "tile5": 10
+      }
+  },
+    "level99": {
+      "goals": {
+        "tile1": 10,
+        "tile2": 10,
+        "tile3": 10,
+        "tile4": 10,
+        "tile5": 10
       }
   }
 }

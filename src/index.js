@@ -21,7 +21,8 @@ let justdestroyed = false;
 let graphics;
 let lives = 3;
 let lifetext;
-let level = 1;
+let level = 5;
+let yvelocity = 0;
 //Goals
 let thisLevelGoals;
 let tile1GText;
@@ -124,33 +125,27 @@ var LevelStart = new Phaser.Class({
 
     create: function ()
     {
-      var add = this.add;
+      var thisscene = this;
+      this.counter = 0;
+      this.xcounter = 0;
+      this.fountactive = false;
 
       WebFont.load({
           google: {
-              families: [ 'Freckle Face', 'Finger Paint', 'Nosifer','Fontdiner Swanky' ]
+              families: [ 'Faster One', 'Finger Paint', 'Nosifer','Fontdiner Swanky' ]
           },
           active: function () {
-            this.lvltxt = add.text(360, 250, 'Level ' + level + '\nStart', { fontFamily: 'Fontdiner Swanky', fontSize: 60, color: '#7b4585' });
-            //this.lvltxt.align = 'center';
-            this.lvltxt.setStroke('#bbbe4b',8);
-            //this.lvltxt.strokeThickness = 2;
-            this.lvltxt.setShadow(5, 5, 'rgba(0,0,0,0.5)', 5)
+            thisscene.fontactive = true;
+            thisscene.lvltxt = thisscene.add.text(360, 0, 'Level ' + level, { fontFamily: 'Fontdiner Swanky', fontSize: 60, color: '#7b4585' });
+            thisscene.lvltxt.setStroke('#bbbe4b',8);
+            thisscene.lvltxt.setShadow(5, 5, 'rgba(0,0,0,0.5)', 5);
+
+            thisscene.starttxt = thisscene.add.text(-230, 260, 'start', { fontFamily: 'Faster One', fontSize: 60, color: '#285bad' });
+            thisscene.starttxt.setStroke('#58d16e',8);
+            thisscene.starttxt.setShadow(5, 5, 'rgba(0,0,0,0.5)', 5)
           }
       });
 
-      /*
-      this.text = this.add.text(400, 250, 'Level ' + level);
-      //this.text.anchor.set(0.5);
-      this.text.align = 'center';
-
-      this.text.font = 'Arial Black';
-      this.text.fontSize = 70;
-      this.text.fontWeight = 'bold';
-      this.text.fill = '#ec008c';
-      this.text.setShadow(0, 0, 'rgba(0, 0, 0, 0.5)', 0);
-      this.cameras.main.setBackgroundColor('rgba(0, 0, 0, 0)')
-      */
       //Create the scene
       setLevelGoals(this.cache.json.get('levelData'), this);
       this.add.tileSprite(400, 585, 800, 30, "block30x30");
@@ -172,6 +167,17 @@ var LevelStart = new Phaser.Class({
 
     update: function()
     {
+      if(this.fontactive) {
+        if(this.counter < 190) {
+          this.counter += 5;
+          this.lvltxt.setPosition(360,this.counter);
+        }
+        if(this.counter >= 190 && this.xcounter < 360) {
+          this.xcounter += 20;
+          this.starttxt.setPosition(this.xcounter,260);
+        }
+      }
+
       /*
       if (this.cursors.space.isDown) {
         this.scene.start('MainGame');
@@ -179,8 +185,7 @@ var LevelStart = new Phaser.Class({
     },
 
     nextScene: function() {
-      this.scene.pause();
-      //this.scene.start('MainGame');
+      this.scene.start('MainGame');
     }
 
 });
@@ -195,6 +200,7 @@ var LevelComplete = new Phaser.Class({
 
     preload: function ()
     {
+      this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
       this.load.json('levelData', './src/assets/levels.json');
 
       this.load.image('tile1', './src/assets/bricks/tile1.png');
@@ -208,15 +214,27 @@ var LevelComplete = new Phaser.Class({
 
     create: function ()
     {
-      this.text = this.add.text(400, 250, 'Level ' + level + ' Complete');
-      //this.text.anchor.set(0.5);
-      this.text.align = 'center';
 
-      this.text.font = 'Arial Black';
-      this.text.fontSize = 70;
-      this.text.fontWeight = 'bold';
-      this.text.fill = '#ec008c';
-      this.text.setShadow(0, 0, 'rgba(0, 0, 0, 0.5)', 0);
+      var thisscene = this;
+      this.counter = 0;
+      this.fountactive = false;
+
+      WebFont.load({
+          google: {
+              families: [ 'Faster One', 'Finger Paint', 'Nosifer','Fontdiner Swanky' ]
+          },
+          active: function () {
+            thisscene.fontactive = true;
+            if(level < 99) {
+              thisscene.lvltxt = thisscene.add.text(260, 0, 'Level ' + level + ' Complete', { fontFamily: 'Fontdiner Swanky', fontSize: 48, color: '#7b4585' });
+            } else {
+              //Game finishes before level 100
+              thisscene.lvltxt = thisscene.add.text(260, 0, '    Well Done \nGame Completed', { fontFamily: 'Fontdiner Swanky', fontSize: 48, color: '#7b4585' });
+            }
+            thisscene.lvltxt.setStroke('#bbbe4b',8);
+            thisscene.lvltxt.setShadow(5, 5, 'rgba(0,0,0,0.5)', 5);
+          }
+      });
       this.cameras.main.setBackgroundColor('rgba(0, 0, 0, 0)')
 
       //Create the scene
@@ -244,15 +262,21 @@ var LevelComplete = new Phaser.Class({
 
     update: function()
     {
-      /*
-      if (this.cursors.space.isDown) {
-        this.scene.start('MainGame');
-      }*/
+      if(this.fontactive) {
+        if(this.counter < 190) {
+          this.counter += 5;
+          this.lvltxt.setPosition(260,this.counter);
+        }
+      }
     },
 
     nextScene: function() {
       level += 1;
-      this.scene.start('LevelStart');
+      if(level < 100) {
+        this.scene.start('LevelStart');
+      } else {
+        this.scene.start('GameStart');
+      }
     }
 
 });
@@ -267,7 +291,7 @@ var GameOver = new Phaser.Class({
 
     preload: function ()
     {
-      game.load.script('webfont', '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js');
+      this.load.script('webfont', '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js');
       this.load.json('levelData', './src/assets/levels.json');
 
       this.load.image('tile1', './src/assets/bricks/tile1.png');
@@ -281,19 +305,26 @@ var GameOver = new Phaser.Class({
 
     create: function ()
     {
-      if(lives == 0) {
-        this.text = this.add.text(400, 250, 'Game Over');
-      } else {
-        this.text = this.add.text(400, 250, 'Opps Try Again');
-      }
-      //this.text.anchor.set(0.5);
-      this.text.align = 'center';
 
-      this.text.font = 'Arial Black';
-      this.text.fontSize = 70;
-      this.text.fontWeight = 'bold';
-      this.text.fill = '#ec008c';
-      this.text.setShadow(0, 0, 'rgba(0, 0, 0, 0.5)', 0);
+      var thisscene = this;
+      this.counter = 0;
+      this.fountactive = false;
+
+      WebFont.load({
+          google: {
+              families: [ 'Faster One', 'Finger Paint', 'Nosifer','Fontdiner Swanky' ]
+          },
+          active: function () {
+            if(lives == 0) {
+              thisscene.lvltxt = thisscene.add.text(290, 0, 'Game Over', { fontFamily: 'Fontdiner Swanky', fontSize: 60, color: '#7b4585' });
+            } else {
+              thisscene.lvltxt = thisscene.add.text(260, 0, 'Oops Try Again', { fontFamily: 'Fontdiner Swanky', fontSize: 48, color: '#7b4585' });
+            }
+            thisscene.fontactive = true;
+            thisscene.lvltxt.setStroke('#bbbe4b',8);
+            thisscene.lvltxt.setShadow(5, 5, 'rgba(0,0,0,0.5)', 5);
+          }
+      });
       this.cameras.main.setBackgroundColor('rgba(0, 0, 0, 0)')
 
       //Create the scene
@@ -321,10 +352,16 @@ var GameOver = new Phaser.Class({
 
     update: function()
     {
-      /*
-      if (this.cursors.space.isDown) {
-        this.scene.start('MainGame');
-      }*/
+      if(this.fontactive) {
+        if(this.counter < 190) {
+          this.counter += 5;
+          if(lives == 0) {
+            this.lvltxt.setPosition(290,this.counter);
+          } else {
+            this.lvltxt.setPosition(260,this.counter);
+          }
+        }
+      }
     },
 
     nextScene: function() {
@@ -350,11 +387,13 @@ const config = {
   width: 800,
   height: 600,
   //scene: [ StartScreen, { key:"MainGame", preload: preload, create: create, update: update } ]
-  scene: [ LevelStart, { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver  ]
+  //scene: [ StartScreen, LevelStart, { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver  ]
+  scene: [ LevelStart, { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver    ]
 };
 
 
 const game = new Phaser.Game(config);
+//game.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
 
 
 function preload() {
@@ -416,6 +455,8 @@ function setLevelGoals(leveldata, thisscene) {
 function create() {
   //console.log(this.physics.overlap(brick,stack));
   //const logo = this.add.image(400, 150, "logo");
+  yvelocity = Math.floor((level - 1)/5);
+
 
   //const logo = this.add.image(400, 150, "tile1");
   var levelData = this.cache.json.get('levelData');
@@ -425,12 +466,12 @@ function create() {
 
   cursors = this.input.keyboard.createCursorKeys();
   brick = this.physics.add.group();
-  brick.setVelocityY(80);
-  brick.setVelocityX(0);
+  //brick.setVelocityX(0);
   //brick.create((this.game.config.width / 2) - 60, 0, 'tile'+randomNumber(1,6));
   //brick.create(this.game.config.width / 2, 0, 'tile'+randomNumber(1,6));
   brick.create(360, 0, 'tile'+randomNumber(1,6));
   brick.create(420, 0, 'tile'+randomNumber(1,6));
+  brick.setVelocity(0,1);
 
   //brick.children.each(child => child.body.checkCollision.left = false);
   //brick.children.each(child => child.body.checkCollision.right = false);
@@ -851,7 +892,7 @@ function update() {
       }
     } else {
       //brick.children.entries.forEach(child => child.setVelocityY(300));
-      brick.setVelocityY(300);
+      brick.setVelocityY(yvelocity);
     }
   }
 
