@@ -471,12 +471,11 @@ function getRandomLocation() {
   //xrange = 110 - 650
   // yrange = 0 - 540
 
-  var xrange = (Math.round(randomNumber(110,651) / 60) * 60);
+  var xrange = (Math.round(randomNumber(231,711) / 60) * 60);
   var yrange = (Math.round(randomNumber(60,541) / 60) * 60);
   var collision = false;
   for(var i=0;i<skulltiles.length;i++) {
     if(xrange == skulltiles[i].x && yrange == skulltiles[i].y) {
-      alert('collision');
       collision = true;
     }
   }
@@ -794,18 +793,19 @@ function realignStack() {
         //if(col[k].y <= j -5 && col[k].y >= j +5 ) {
         if(col[k].y != j) {
           gapdetected = true;
-          //var newx = col[k].x
-          //var newy = col[k].y
-          //var newt = col[k].texture
-          //stack.remove(col[k]);
-          col[k].setPosition(col[k].x,j).refreshBody();
-          //col[k].setSize(50,60,29);
-          //console.log(col[k].height);
-          //stack.create(newx,newy,newt);
-          minsize = Math.min.apply(Math, col.map(function(t) { return t.y; }));
+          if(col[k].texture.key !== 'tile6') {
+            col[k].setPosition(col[k].x,j).refreshBody();
+            minsize = Math.min.apply(Math, col.map(function(t) { return t.y; }));
+            k++;
+          }
+
+        } else {
+          k++;
         }
         j -= 60;
-        k++;
+        console.log('j');
+        console.log(j);
+        console.log(minsize);
       }
       if(gapdetected) {
         col.forEach(i => console.log(i.height));
@@ -824,7 +824,7 @@ function realignStack() {
 
 function update() {
   console.log(getRandomLocation());
-  this.scene.pause();
+  //this.scene.pause();
   //this.scene.start('LevelComplete');
 
   if(updatecount == 10) {
@@ -1008,18 +1008,10 @@ function detectLines(thisscene) {
         for(var j=0;j<lines[i].length;j++) {
           scoreTiles(lines[i][j],thisscene);
           if (score > 0) {
-            //this.add.text(35, 50, pad(score), { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
-            console.log("Score");
-            console.log(score);
-            console.log(scoretext);
             scoretext.setText(pad(score));
-            //thescene.pause();
           }
           //Deal with vertical
           if(lines[i][j].type === 'V') {
-            console.log("LINES");
-            console.log(lines[i][j].matchedtiles);
-            //console.log(lines[i][j].matchedtiles);
             for(var k=0;k<lines[i][j].matchedtiles.length;k++) {
               var currenttile = lines[i][j].matchedtiles[k];
               var tilefromstack = stack.children.entries.filter(child => (child.x == currenttile.matchx && child.y == currenttile.matchy));
@@ -1063,28 +1055,18 @@ function tileHitsGroundOrBlock() {
   } else {
     stackheight = 630;
   }
-  console.log("STACKHEIGHT");
-  console.log(stackheight);
 
-
-  console.log(brick.children.entries);
   var verticallyalligned = false;
 
   if(brick.children.entries.length > 1 && brick.children.entries[0].x >= brick.children.entries[1].x - 5 && brick.children.entries[0].x <= brick.children.entries[1].x + 5) {
     verticallyalligned = true;
   }
 
-  console.log(brick.children.entries.length);
+
 
   if(verticallyalligned || brick.children.entries.length == 1) {
-    console.log("len");
-    console.log(brick.children.entries.length);
     for(var i=0;i<brick.children.entries.length;i++) {
       child = brick.children.entries[i];
-      console.log("THE MATH");
-      //console.log(Math.round(child.body.x / 60) * 60);
-      //console.log(Math.round((child.y+1)/60)*60);
-      //getYPositioninStack(child.body.y);
       newBricksArray.push({x:((Math.round(child.body.x / 60) * 60)),y:Math.round((child.body.y+1) / 60) * 60,t:child.texture});
       //stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y) / 60) * 60,child.texture);
       child.destroy();
@@ -1131,12 +1113,7 @@ function tileHitsGroundOrBlock() {
     brick.create(360, 0, 'tile'+randomNumber(1,6));
     brick.create(420, 0, 'tile'+randomNumber(1,6));
     brick.children.each(child => child.body.setSize(50,60,29));
-  } else {
-    console.log(stack);
   }
-
-  console.log("graphics");
-  console.log(graphics);
 
   if(stackheight <= 120 && !playerdied) {
     playerdied = true;
