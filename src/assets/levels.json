@@ -44,6 +44,15 @@
         "tile5": 1
       }
   },
+    "level6": {
+      "goals": {
+        "tile1": 1,
+        "tile2": 2,
+        "tile3": 1,
+        "tile4": 1,
+        "tile5": 2
+      }
+  },
     "level88": {
       "goals": {
         "tile1": 10,

@@ -21,8 +21,10 @@ let justdestroyed = false;
 let graphics;
 let lives = 3;
 let lifetext;
-let level = 5;
+let level = 6;
 let yvelocity = 0;
+let playerdied = false;
+let skulltiles = [];
 //Goals
 let thisLevelGoals;
 let tile1GText;
@@ -365,6 +367,8 @@ var GameOver = new Phaser.Class({
     },
 
     nextScene: function() {
+      playerdied = false;
+
       if(lives == 0) {
         this.scene.start('StartScreen');
       } else {
@@ -388,7 +392,7 @@ const config = {
   height: 600,
   //scene: [ StartScreen, { key:"MainGame", preload: preload, create: create, update: update } ]
   //scene: [ StartScreen, LevelStart, { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver  ]
-  scene: [ LevelStart, { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver    ]
+  scene: [ { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver    ]
 };
 
 
@@ -397,6 +401,17 @@ const game = new Phaser.Game(config);
 
 
 function preload() {
+  this.load.script('webfont', '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js');
+  this.load.json('levelData', './src/assets/levels.json');
+
+  this.load.image('tile1', './src/assets/bricks/tile1.png');
+  this.load.image('tile2', './src/assets/bricks/tile2.png');
+  this.load.image('tile3', './src/assets/bricks/tile3.png');
+  this.load.image('tile4', './src/assets/bricks/tile4.png');
+  this.load.image('tile5', './src/assets/bricks/tile5.png');
+  this.load.image('tile6', './src/assets/bricks/tile6.png');
+  this.load.image('ground', './src/assets/platform.png');
+  this.load.image('block30x30', './src/assets/bricks/block30x30.png');
   //this.load.image("logo", logoImg);
   //this.load.image('tile1', tile1);
 }
@@ -452,11 +467,30 @@ function setLevelGoals(leveldata, thisscene) {
   lifetext = thisscene.add.text(35, 180, 'Lives x'+lives, { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
 }
 
-function create() {
-  //console.log(this.physics.overlap(brick,stack));
-  //const logo = this.add.image(400, 150, "logo");
-  yvelocity = Math.floor((level - 1)/5);
+function getRandomLocation() {
+  //xrange = 110 - 650
+  // yrange = 0 - 540
 
+  var xrange = (Math.round(randomNumber(110,651) / 60) * 60);
+  var yrange = (Math.round(randomNumber(60,541) / 60) * 60);
+  var collision = false;
+  for(var i=0;i<skulltiles.length;i++) {
+    if(xrange == skulltiles[i].x && yrange == skulltiles[i].y) {
+      alert('collision');
+      collision = true;
+    }
+  }
+  if(collision) {
+    return getRandomLocation();
+  } else {
+    return {'x':xrange,'y':yrange};
+  }
+}
+
+function create() {
+  console.log("yvel");
+  yvelocity = (Math.floor((level - 1)/5) + 1) * 10;
+  console.log(yvelocity);
 
   //const logo = this.add.image(400, 150, "tile1");
   var levelData = this.cache.json.get('levelData');
@@ -471,7 +505,8 @@ function create() {
   //brick.create(this.game.config.width / 2, 0, 'tile'+randomNumber(1,6));
   brick.create(360, 0, 'tile'+randomNumber(1,6));
   brick.create(420, 0, 'tile'+randomNumber(1,6));
-  brick.setVelocity(0,1);
+  //brick.children.entries.forEach(b => b.setVelocity(0,1));
+  //brick.setVelocity(0,1);
 
   //brick.children.each(child => child.body.checkCollision.left = false);
   //brick.children.each(child => child.body.checkCollision.right = false);
@@ -503,7 +538,17 @@ function create() {
   groundCollider = this.physics.add.collider(brick, ground, tileHitsGroundOrBlock,null,this);
   //this.physics.add.collider(brick, ground, tileHitsGroundOrBlock,()=>{return colliderActivated;},this);
 
+  var noSkullTiles = Math.floor((level - 1)/5);
+  alert(noSkullTiles);
   stack = this.physics.add.staticGroup();
+  //Place random skull tiles
+  skulltiles = [];
+  for(var i=0;i<noSkullTiles;i++) {
+    //avoid collisions
+    var randomCoords = getRandomLocation();
+    stack.create(randomCoords.x, randomCoords.y, 'tile6');
+    skulltiles.push(randomCoords);
+  }
   //brick.children.entries.forEach(child => stack.create(child.body.x, child.body.y+100,child.texture));
   stackCollider = this.physics.add.collider(brick, stack, tileHitsGroundOrBlock,null,this);
   //this.physics.add.collider(brick, stack, tileHitsGroundOrBlock,()=>{return colliderActivated;},this);
@@ -778,7 +823,8 @@ function realignStack() {
 
 
 function update() {
-  //this.scene.pause();
+  console.log(getRandomLocation());
+  this.scene.pause();
   //this.scene.start('LevelComplete');
 
   if(updatecount == 10) {
@@ -889,10 +935,11 @@ function update() {
         touchcount = 10;
       } else {
         brick.setVelocityX(0);
+        brick.setVelocityY(yvelocity);
       }
     } else {
       //brick.children.entries.forEach(child => child.setVelocityY(300));
-      brick.setVelocityY(yvelocity);
+      brick.setVelocityY(200);
     }
   }
 
@@ -1084,8 +1131,6 @@ function tileHitsGroundOrBlock() {
     brick.create(360, 0, 'tile'+randomNumber(1,6));
     brick.create(420, 0, 'tile'+randomNumber(1,6));
     brick.children.each(child => child.body.setSize(50,60,29));
-    //groundCollider = this.physics.add.collider(brick, ground, tileHitsGroundOrBlock,null,this);
-    //stackCollider = this.physics.add.collider(brick, stack, tileHitsGroundOrBlock,null,this);
   } else {
     console.log(stack);
   }
@@ -1093,7 +1138,8 @@ function tileHitsGroundOrBlock() {
   console.log("graphics");
   console.log(graphics);
 
-  if(stackheight <= 120) {
+  if(stackheight <= 120 && !playerdied) {
+    playerdied = true;
     lives -= 1;
     this.scene.start('GameOver');
   }
