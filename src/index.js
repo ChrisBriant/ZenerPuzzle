@@ -21,7 +21,7 @@ let justdestroyed = false;
 let graphics;
 let lives = 3;
 let lifetext;
-let level = 6;
+let level = 15;
 let yvelocity = 0;
 let playerdied = false;
 let skulltiles = [];
@@ -472,7 +472,7 @@ function getRandomLocation() {
   // yrange = 0 - 540
 
   var xrange = (Math.round(randomNumber(231,711) / 60) * 60);
-  var yrange = (Math.round(randomNumber(60,541) / 60) * 60);
+  var yrange = (Math.round(randomNumber(121,541) / 60) * 60);
   var collision = false;
   for(var i=0;i<skulltiles.length;i++) {
     if(xrange == skulltiles[i].x && yrange == skulltiles[i].y) {
@@ -499,22 +499,11 @@ function create() {
 
   cursors = this.input.keyboard.createCursorKeys();
   brick = this.physics.add.group();
-  //brick.setVelocityX(0);
-  //brick.create((this.game.config.width / 2) - 60, 0, 'tile'+randomNumber(1,6));
-  //brick.create(this.game.config.width / 2, 0, 'tile'+randomNumber(1,6));
   brick.create(360, 0, 'tile'+randomNumber(1,6));
   brick.create(420, 0, 'tile'+randomNumber(1,6));
-  //brick.children.entries.forEach(b => b.setVelocity(0,1));
-  //brick.setVelocity(0,1);
 
-  //brick.children.each(child => child.body.checkCollision.left = false);
-  //brick.children.each(child => child.body.checkCollision.right = false);
   brick.children.each(child => child.body.setSize(58,60,29));
-  //brick.children.each(child => child.body.blocked.left=true);
-  //Add the floor
-  //ground = this.physics.add.sprite(300,this.game.config.height / 2 - 100, 'ground');
   ground = this.physics.add.staticGroup();
-  //ground.create(300,500, 'ground');
   var floor = this.add.tileSprite(400, 585, 800, 30, "block30x30");
   ground.add(floor);
 
@@ -798,11 +787,13 @@ function realignStack() {
             minsize = Math.min.apply(Math, col.map(function(t) { return t.y; }));
             k++;
           }
-
+        //Else added on 6thApril2020
         } else {
           k++;
         }
         j -= 60;
+        //k++ used to be below 07-04-20
+        //k++;
         console.log('j');
         console.log(j);
         console.log(minsize);
@@ -821,6 +812,16 @@ function realignStack() {
   }
 }
 
+function killSkullTile() {
+  if(skulltiles.length > 0) {
+    var killTile = skulltiles.pop();
+
+    var killFromStack = stack.children.entries.filter(tile => (tile.x == killTile.x && tile.y == killTile.y));
+    killFromStack[0].destroy();
+    //stack.refreshBody();
+  }
+}
+
 
 function update() {
   console.log(getRandomLocation());
@@ -828,6 +829,8 @@ function update() {
   //this.scene.start('LevelComplete');
 
   if(updatecount == 10) {
+    //Tidy before realigning the stack
+    stack.children.entries.forEach(child => child.refreshBody());
     realignStack();
     detectLines(this);
     } else {
@@ -870,7 +873,7 @@ function update() {
       }
       touched = false;
       //brick.children.entries.forEach(child => child.setVelocityY(80));
-      brick.setVelocityY(80);
+      //brick.setVelocityY(80);
       //// REVIEW: Line nleow not sure if the "!this.pysics.overlap" is needed
       if(cursors.left.isDown && touchcount == 0 && !this.physics.overlap(brick,stack) && brick.children.entries.length > 1 ) {
         //Add a blank sprite to the left and check collides with stack
@@ -934,8 +937,14 @@ function update() {
         touched = true;
         touchcount = 10;
       } else {
-        brick.setVelocityX(0);
-        brick.setVelocityY(yvelocity);
+        if(brick.children.entries.length == 1) {
+          //Make single brick fall fast
+          brick.setVelocityX(0);
+          brick.setVelocityY(200);
+        } else {
+          brick.setVelocityX(0);
+          brick.setVelocityY(yvelocity);
+        }
       }
     } else {
       //brick.children.entries.forEach(child => child.setVelocityY(300));
@@ -960,6 +969,8 @@ function update() {
     brick.create(360, 0, 'tile'+randomNumber(1,6));
     brick.create(420, 0, 'tile'+randomNumber(1,6));
     brick.children.each(child => child.body.setSize(50,60,29));
+    //Detroy skull tile
+    killSkullTile();
     justdestroyed =false;
     this.tweens.killAll();
     //There is a problem where the graphics remains on the screen still
@@ -1072,17 +1083,9 @@ function tileHitsGroundOrBlock() {
       child.destroy();
     }
     for(var i=0;i<newBricksArray.length;i++) {
-      stack.create(newBricksArray[i].x, newBricksArray[i].y,newBricksArray[i].t);
+      stack.create(newBricksArray[i].x, newBricksArray[i].y,newBricksArray[i].t).refreshBody();
 
     }
-    /*
-    for(var i=0;i<brick.children.entries.length;i++) {
-      var child = brick.children.entries[i];
-
-      stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y+1) / 60) * 60,child.texture);
-      brick.children.entries.forEach(brick => brick.body.y = child.body.y-30);
-      child.destroy();
-    }*/
   } else {
     for(var i=0;i<brick.children.entries.length;i++) {
       var child = brick.children.entries[i];
@@ -1091,7 +1094,7 @@ function tileHitsGroundOrBlock() {
         //console.log(Math.round((child.body.y+1)));
         //Line below is *HOPEFULLY* fixing the fallthrough issue
         if(!verticallyalligned) {
-          stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y+1) / 60) * 60,child.texture);
+          stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y+1) / 60) * 60,child.texture).refreshBody();
           brick.children.entries.forEach(brick => brick.body.y = child.body.y+1);
         } else {
           //brick.children.entries.forEach(brick => brick.body.y = child.body.x+1);
@@ -1115,7 +1118,7 @@ function tileHitsGroundOrBlock() {
     brick.children.each(child => child.body.setSize(50,60,29));
   }
 
-  if(stackheight <= 120 && !playerdied) {
+  if(stackheight <= 60 && !playerdied) {
     playerdied = true;
     lives -= 1;
     this.scene.start('GameOver');

@@ -53,6 +53,413 @@
         "tile5": 2
       }
   },
+  "level7": {
+    "goals": {
+      "tile1": 1,
+      "tile2": 2,
+      "tile3": 1,
+      "tile4": 1,
+      "tile5": 2
+    }
+  },
+  "level8": {
+    "goals": {
+      "tile1": 1,
+      "tile2": 2,
+      "tile3": 1,
+      "tile4": 1,
+      "tile5": 2
+    }
+  },
+  "level9": {
+    "goals": {
+      "tile1": 1,
+      "tile2": 2,
+      "tile3": 1,
+      "tile4": 1,
+      "tile5": 2
+    }
+  },
+  "level10": {
+    "goals": {
+      "tile1": 2,
+      "tile2": 2,
+      "tile3": 2,
+      "tile4": 2,
+      "tile5": 2
+    }
+  },
+  "level11": {
+    "goals": {
+      "tile1": 3,
+      "tile2": 2,
+      "tile3": 4,
+      "tile4": 2,
+      "tile5": 2
+    }
+  },
+  "level12": {
+    "goals": {
+      "tile1": 2,
+      "tile2": 2,
+      "tile3": 3,
+      "tile4": 2,
+      "tile5": 4
+    }
+  },
+  "level13": {
+    "goals": {
+      "tile1": 2,
+      "tile2": 2,
+      "tile3": 3,
+      "tile4": 2,
+      "tile5": 4
+    }
+  },
+  "level14": {
+    "goals": {
+      "tile1": 2,
+      "tile2": 2,
+      "tile3": 3,
+      "tile4": 2,
+      "tile5": 4
+    }
+  },
+    "level15": {
+      "goals": {
+        "tile1": 3,
+        "tile2": 3,
+        "tile3": 3,
+        "tile4": 3,
+        "tile5": 3
+      }
+  },
+    "level16": {
+      "goals": {
+        "tile1": 2,
+        "tile2": 4,
+        "tile3": 2,
+        "tile4": 2,
+        "tile5": 4
+      }
+  },
+  "level17": {
+    "goals": {
+      "tile1": 2,
+      "tile2": 4,
+      "tile3": 2,
+      "tile4": 2,
+      "tile5": 4
+    }
+  },
+  "level18": {
+    "goals": {
+      "tile1": 2,
+      "tile2": 4,
+      "tile3": 2,
+      "tile4": 2,
+      "tile5": 4
+    }
+  },
+  "level19": {
+    "goals": {
+      "tile1": 2,
+      "tile2": 4,
+      "tile3": 2,
+      "tile4": 2,
+      "tile5": 4
+    }
+  },
+  "level20": {
+    "goals": {
+      "tile1": 4,
+      "tile2": 4,
+      "tile3": 4,
+      "tile4": 4,
+      "tile5": 4
+    }
+  },
+  "level21": {
+    "goals": {
+      "tile1": 5,
+      "tile2": 4,
+      "tile3": 6,
+      "tile4": 4,
+      "tile5": 4
+    }
+  },
+  "level22": {
+    "goals": {
+      "tile1": 4,
+      "tile2": 4,
+      "tile3": 5,
+      "tile4": 4,
+      "tile5": 6
+    }
+  },
+  "level23": {
+    "goals": {
+      "tile1": 4,
+      "tile2": 4,
+      "tile3": 5,
+      "tile4": 4,
+      "tile5": 6
+    }
+  },
+  "level24": {
+    "goals": {
+      "tile1": 4,
+      "tile2": 4,
+      "tile3": 5,
+      "tile4": 4,
+      "tile5": 6
+    }
+  },
+    "level25": {
+      "goals": {
+        "tile1": 5,
+        "tile2": 5,
+        "tile3": 5,
+        "tile4": 5,
+        "tile5": 5
+      }
+  },
+    "level26": {
+      "goals": {
+        "tile1": 4,
+        "tile2": 6,
+        "tile3": 4,
+        "tile4": 4,
+        "tile5": 6
+      }
+  },
+  "level27": {
+    "goals": {
+      "tile1": 4,
+      "tile2": 6,
+      "tile3": 4,
+      "tile4": 4,
+      "tile5": 6
+    }
+  },
+  "level28": {
+    "goals": {
+      "tile1": 4,
+      "tile2": 6,
+      "tile3": 4,
+      "tile4": 4,
+      "tile5": 6
+    }
+  },
+  "level29": {
+    "goals": {
+      "tile1": 4,
+      "tile2": 6,
+      "tile3": 4,
+      "tile4": 4,
+      "tile5": 6
+    }
+  },
+  "level30": {
+    "goals": {
+      "tile1": 6,
+      "tile2": 6,
+      "tile3": 6,
+      "tile4": 6,
+      "tile5": 6
+    }
+  },
+  "level31": {
+    "goals": {
+      "tile1": 5,
+      "tile2": 6,
+      "tile3": 7,
+      "tile4": 5,
+      "tile5": 5
+    }
+  },
+  "level32": {
+    "goals": {
+      "tile1": 5,
+      "tile2": 5,
+      "tile3": 6,
+      "tile4": 5,
+      "tile5": 7
+    }
+  },
+  "level33": {
+    "goals": {
+      "tile1": 5,
+      "tile2": 5,
+      "tile3": 6,
+      "tile4": 5,
+      "tile5": 7
+    }
+  },
+  "level34": {
+    "goals": {
+      "tile1": 5,
+      "tile2": 5,
+      "tile3": 6,
+      "tile4": 5,
+      "tile5": 7
+    }
+  },
+    "level35": {
+      "goals": {
+        "tile1": 7,
+        "tile2": 7,
+        "tile3": 7,
+        "tile4": 7,
+        "tile5": 7
+      }
+  },
+    "level36": {
+      "goals": {
+        "tile1": 6,
+        "tile2": 7,
+        "tile3": 6,
+        "tile4": 6,
+        "tile5": 8
+      }
+  },
+  "level37": {
+    "goals": {
+      "tile1": 6,
+      "tile2": 7,
+      "tile3": 6,
+      "tile4": 6,
+      "tile5": 8
+    }
+  },
+  "level38": {
+    "goals": {
+      "tile1": 6,
+      "tile2": 8,
+      "tile3": 6,
+      "tile4": 6,
+      "tile5": 8
+    }
+  },
+  "level39": {
+    "goals": {
+      "tile1": 6,
+      "tile2": 8,
+      "tile3": 7,
+      "tile4": 6,
+      "tile5": 8
+    }
+  },
+  "level40": {
+    "goals": {
+      "tile1": 7,
+      "tile2": 7,
+      "tile3": 7,
+      "tile4": 7,
+      "tile5": 7
+    }
+  },
+
+  "level41": {
+    "goals": {
+      "tile1": 7,
+      "tile2": 8,
+      "tile3": 9,
+      "tile4": 7,
+      "tile5": 7
+    }
+  },
+  "level42": {
+    "goals": {
+      "tile1": 7,
+      "tile2": 7,
+      "tile3": 8,
+      "tile4": 7,
+      "tile5": 9
+    }
+  },
+  "level43": {
+    "goals": {
+      "tile1": 7,
+      "tile2": 7,
+      "tile3": 8,
+      "tile4": 7,
+      "tile5": 9
+    }
+  },
+  "level44": {
+    "goals": {
+      "tile1": 7,
+      "tile2": 7,
+      "tile3": 8,
+      "tile4": 7,
+      "tile5": 9
+    }
+  },
+    "level45": {
+      "goals": {
+        "tile1": 8,
+        "tile2": 8,
+        "tile3": 8,
+        "tile4": 8,
+        "tile5": 8
+      }
+  },
+    "level46": {
+      "goals": {
+        "tile1": 8,
+        "tile2": 9,
+        "tile3": 8,
+        "tile4": 8,
+        "tile5": 10
+      }
+  },
+  "level47": {
+    "goals": {
+      "tile1": 8,
+      "tile2": 9,
+      "tile3": 8,
+      "tile4": 8,
+      "tile5": 10
+    }
+  },
+  "level48": {
+    "goals": {
+      "tile1": 8,
+      "tile2": 10,
+      "tile3": 8,
+      "tile4": 8,
+      "tile5": 10
+    }
+  },
+  "level49": {
+    "goals": {
+      "tile1": 8,
+      "tile2": 10,
+      "tile3": 9,
+      "tile4": 8,
+      "tile5": 10
+    }
+  },
+  "level30": {
+    "goals": {
+      "tile1": 9,
+      "tile2": 9,
+      "tile3": 9,
+      "tile4": 9,
+      "tile5": 9
+    }
+  },
+
+  "level15": {
+    "goals": {
+      "tile1": 1,
+      "tile2": 1,
+      "tile3": 1,
+      "tile4": 1,
+      "tile5": 1
+    }
+},
     "level88": {
       "goals": {
         "tile1": 10,
