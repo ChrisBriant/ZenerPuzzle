@@ -21,7 +21,7 @@ let justdestroyed = false;
 let graphics;
 let lives = 3;
 let lifetext;
-let level = 15;
+let level = 2;
 let yvelocity = 0;
 let playerdied = false;
 let skulltiles = [];
@@ -179,11 +179,6 @@ var LevelStart = new Phaser.Class({
           this.starttxt.setPosition(this.xcounter,260);
         }
       }
-
-      /*
-      if (this.cursors.space.isDown) {
-        this.scene.start('MainGame');
-      }*/
     },
 
     nextScene: function() {
@@ -392,7 +387,7 @@ const config = {
   height: 600,
   //scene: [ StartScreen, { key:"MainGame", preload: preload, create: create, update: update } ]
   //scene: [ StartScreen, LevelStart, { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver  ]
-  scene: [ { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver    ]
+  scene: [ LevelStart, { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver    ]
 };
 
 
@@ -527,7 +522,6 @@ function create() {
   //this.physics.add.collider(brick, ground, tileHitsGroundOrBlock,()=>{return colliderActivated;},this);
 
   var noSkullTiles = Math.floor((level - 1)/5);
-  alert(noSkullTiles);
   stack = this.physics.add.staticGroup();
   //Place random skull tiles
   skulltiles = [];
@@ -826,7 +820,6 @@ function killSkullTile() {
 function update() {
   console.log(getRandomLocation());
   //this.scene.pause();
-  //this.scene.start('LevelComplete');
 
   if(updatecount == 10) {
     //Tidy before realigning the stack
@@ -977,6 +970,13 @@ function update() {
     graphics.clear();
     graphics.destroy();
   }
+  //Testing levels load
+  /*
+  level++;
+  this.scene.pause();
+  this.scene.start('LevelStart');
+  */
+  //END Testing levels load
 }
 
 function detectLines(thisscene) {
