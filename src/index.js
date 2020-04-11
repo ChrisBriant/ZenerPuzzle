@@ -14,11 +14,11 @@ let score = 0;
 let scoretext;
 let touched = false;
 let touchcount=0;
-let flashgraphics = [];
+//let flashgraphics = [];
 let flashing = false;
 let falling = false;
 let justdestroyed = false;
-let graphics;
+//let graphics;
 let lives = 3;
 let lifetext;
 let level = 6;
@@ -682,16 +682,19 @@ function checkLineofFourY(spritearray) {
 
 //Remove the flashing graphics
 function destroyFlashingTile(x,y) {
-  var destroytile = flashgraphics.filter(child => child.x == x-30 && child.y == y-30);
+  //var destroytile = flashgraphics.filter(child => child.x == x-30 && child.y == y-30);
+  var destroytile = stack.children.entries.filter(child => child.x == x && child.y == y);
   destroytile[0].destroy();
 }
 
+/*
 //Work around the issue where graphics is not detected
 function killAllGraphics() {
   for(var i=0;i<flashgraphics.length;i++) {
     flashgraphics[0].destroy();
   }
 }
+*/
 
 //Calculate the score
 function scoreTiles(tiles,thisscene) {
@@ -829,6 +832,7 @@ function update() {
       brick.setVelocityY(0);
 
       for(var i=0;i<flashingtiles.length;i++) {
+        /*
         graphics = this.add.graphics({
           x: flashingtiles[i].x-30,
           y: flashingtiles[i].y-30
@@ -837,11 +841,12 @@ function update() {
         .fillRect(0, 0, flashingtiles[i].width, flashingtiles[i].height);
 
         flashgraphics.push(graphics);
+        */
 
         this.tweens.add({
-          targets: graphics,
-          alpha: 0,
-          ease: 'Cubic.easeOut',
+          targets: flashingtiles[i],
+          alpha: { from: 0, to: 1 },
+          ease: 'Linear',
           duration: 500,
           repeat: -1,
           yoyo: true
@@ -931,6 +936,7 @@ function update() {
 
     //Increment the flashing tiles
     var incrementflashtiles = stack.children.entries.filter(tile => (tile.flashcount >= 0));
+    console.log(incrementflashtiles);
     incrementflashtiles.forEach(flashing => flashing.flashcount++);
     for (var i =0;i<incrementflashtiles.length;i++) {
       if(incrementflashtiles[i].flashcount >= 20) {
@@ -951,8 +957,8 @@ function update() {
       justdestroyed =false;
       this.tweens.killAll();
       //There is a problem where the graphics remains on the screen still
-      graphics.clear();
-      graphics.destroy();
+      //graphics.clear();
+      //graphics.destroy();
     }
   }
 }
