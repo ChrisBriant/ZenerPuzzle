@@ -21,7 +21,7 @@ let justdestroyed = false;
 let graphics;
 let lives = 3;
 let lifetext;
-let level = 97;
+let level = 6;
 let yvelocity = 0;
 let playerdied = false;
 let skulltiles = [];
@@ -76,7 +76,6 @@ var StartScreen = new Phaser.Class({
           callbackScope: this,
           loop: true
         });
-        console.log(this);
     },
 
     update: function()
@@ -89,7 +88,6 @@ var StartScreen = new Phaser.Class({
     },
 
     blinkText: function() {
-      console.log(this.presstart);
       if(this.blinkOff) {
         //this.children.list[5].visible = false;
         this.presstart.visible = false;
@@ -250,7 +248,6 @@ var LevelComplete = new Phaser.Class({
       this.add.text(35, 30, 'Score:', { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
       this.add.text(35, 50, pad(score), { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
       stack = this.physics.add.staticGroup();
-      console.log('hi');
       stackCopy.forEach(item => this.stack.create(item.x, item.y,item.texture));
       //this.stackCopy = stack;
 
@@ -340,7 +337,6 @@ var GameOver = new Phaser.Class({
       this.add.text(35, 30, 'Score:', { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
       this.add.text(35, 50, pad(score), { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
       stack = this.physics.add.staticGroup();
-      console.log('hi');
       stackCopy.forEach(item => this.stack.create(item.x, item.y,item.texture));
       //this.stackCopy = stack;
 
@@ -392,7 +388,7 @@ const config = {
   height: 600,
   //scene: [ StartScreen, { key:"MainGame", preload: preload, create: create, update: update } ]
   //scene: [ StartScreen, LevelStart, { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver  ]
-  scene: [ LevelStart, { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver    ]
+  scene: [ { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver    ]
 };
 
 
@@ -489,11 +485,9 @@ function getRandomLocation() {
 function create() {
   stack = this.physics.add.staticGroup();
   yvelocity = (Math.floor((level - 1)/5) + 1) * 10;
-  console.log(yvelocity);
 
   //const logo = this.add.image(400, 150, "tile1");
   var levelData = this.cache.json.get('levelData');
-  console.log(levelData);
   setLevelGoals(levelData, this);
 
 
@@ -535,15 +529,16 @@ function create() {
     stack.create(randomCoords.x, randomCoords.y, 'tile6');
     skulltiles.push(randomCoords);
   }
-  console.log("Created Stack");
-  console.log(stack);
+
   //brick.children.entries.forEach(child => stack.create(child.body.x, child.body.y+100,child.texture));
   stackCollider = this.physics.add.collider(brick, stack, tileHitsGroundOrBlock,null,this);
-  //this.physics.add.collider(brick, stack, tileHitsGroundOrBlock,()=>{return colliderActivated;},this);
+  //Control the update, stop it from running until the create has finished
   updatelock = false;
 }
 
 
+//Not used
+/*
 function adjacent(sprite1,sprite2,axis) {
   if (axis === 'Y') {
     if(sprite2.body.y < sprite1.body.y + 65 && sprite2.body.y > sprite1.body.y + 55) {
@@ -554,13 +549,11 @@ function adjacent(sprite1,sprite2,axis) {
   } else {
     //Fill in for x axis
   }
-}
+}*/
 
 function tilesmatch(sprite1,sprite2,axis) {
   if(axis === 'Y') {
-    console.log("TEXTURES");
     if(sprite2.texture.key === sprite1.texture.key) {
-      console.log("MATCH");
       return true;
     } else {
       return false;
@@ -794,13 +787,8 @@ function realignStack() {
         j -= 60;
         //k++ used to be below 07-04-20
         //k++;
-        console.log('j');
-        console.log(j);
-        console.log(minsize);
       }
       if(gapdetected) {
-        col.forEach(i => console.log(i.height));
-        console.log(stack);
         //thisscene.pause();
         gapdetected = false;
       }
@@ -837,7 +825,6 @@ function update() {
     var flashingtiles = stack.children.entries.filter(tile => (tile.flashcount == 0));
 
     if(flashingtiles.length > 0) {
-      console.log(flashingtiles);
       //Stop movement
       brick.setVelocityY(0);
 
@@ -869,9 +856,6 @@ function update() {
           touchcount -= 1;
         }
         touched = false;
-        //brick.children.entries.forEach(child => child.setVelocityY(80));
-        //brick.setVelocityY(80);
-        //// REVIEW: Line nleow not sure if the "!this.pysics.overlap" is needed
         if(cursors.left.isDown && touchcount == 0 && !this.physics.overlap(brick,stack) && brick.children.entries.length > 1 ) {
           //Add a blank sprite to the left and check collides with stack
           var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y + 30);
@@ -894,7 +878,6 @@ function update() {
           //Handle rotation
           if(brick.children.entries.length > 1 && brick.children.entries[1].body.x > brick.children.entries[0].body.x + 5 && brick.children.entries[1].body.x > brick.children.entries[0].body.x - 5) {
             //Brick is horrizontally alligned so move to vertical orientation
-            console.log("Horizontal left");
             //Check not blocked
             var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x + 60,brick.children.entries[0].body.y - 60,'tile1');
             if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
@@ -904,7 +887,6 @@ function update() {
             checksprite.destroy();
           } else if(brick.children.entries.length > 1 && brick.children.entries[0].body.x > brick.children.entries[1].body.x + 5 && brick.children.entries[0].body.x > brick.children.entries[1].body.x - 5) {
             //Brick is horizontally alligned with first brick on right
-            console.log("Horizontal right");
             var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y + 60,'tile1');
             if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
               brick.children.entries[0].body.x -= 60;
@@ -913,7 +895,6 @@ function update() {
             checksprite.destroy();
           } else if (brick.children.entries.length > 1 && brick.children.entries[1].body.y > brick.children.entries[0].body.y + 5 && brick.children.entries[1].body.y > brick.children.entries[0].body.y - 5) {
             //Brick is orientated vertically and first brick is on top so rotate to horizontal position
-            console.log("Virtical top");
             var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x + 60,brick.children.entries[0].body.y + 60,'tile1');
             if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
               brick.children.entries[0].body.x += 60;
@@ -922,7 +903,6 @@ function update() {
             checksprite.destroy();
           } else if (brick.children.entries.length > 1 && brick.children.entries[0].body.y > brick.children.entries[1].body.y + 5 && brick.children.entries[0].body.y > brick.children.entries[1].body.y - 5) {
             //Brick is orientated vertically and first brick is on bottom so rotate to horizontal position
-            console.log("Virtical bottom");
             var checksprite = this.physics.add.sprite(brick.children.entries[0].body.x - 60,brick.children.entries[0].body.y - 60,'tile1');
             if(!this.physics.overlap(checksprite, stack) && !this.physics.overlap(checksprite, rightwall) && !this.physics.overlap(checksprite, leftwall)) {
               brick.children.entries[0].body.x -= 60;
@@ -974,10 +954,6 @@ function update() {
       graphics.clear();
       graphics.destroy();
     }
-    //Testing levels load
-    //level++;
-    this.scene.start('LevelComplete');
-    //END Testing levels load
   }
 }
 
@@ -995,7 +971,10 @@ function detectLines(thisscene) {
       row.sort(function(a, b){return a.body.x - b.body.x});
       lineoffour = checkLineofFourX(row); //Check matches
       if(lineoffour.length > 0) {
-        lines.push(lineoffour);
+        //Filter out skull lines
+        if(lineoffour[0].texture != 'tile6') {
+          lines.push(lineoffour);
+        }
       }
     }
     //VERTICAL LINES
@@ -1007,9 +986,9 @@ function detectLines(thisscene) {
       col.sort(function(a, b){return a.body.y - b.body.y});
       lineoffour = checkLineofFourY(col); //Check matches
       if(lineoffour.length > 0) {
-        lines.push(lineoffour);
-        console.log("Matchtiles");
-        console.log(lineoffour);
+        if(lineoffour[0].texture != 'tile6') {
+          lines.push(lineoffour);
+        }
       }
     }
 
