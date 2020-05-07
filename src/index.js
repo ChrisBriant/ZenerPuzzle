@@ -21,7 +21,7 @@ let justdestroyed = false;
 //let graphics;
 let lives = 3;
 let lifetext;
-let level = 6;
+let level = 1;
 let yvelocity = 0;
 let playerdied = false;
 let skulltiles = [];
@@ -42,6 +42,10 @@ let bottomrow;
 let lineoffour;
 let updatelock = false;
 
+//Sound
+let bgmusic;
+let impact;
+let linescored;
 
 
 var StartScreen = new Phaser.Class({
@@ -56,11 +60,15 @@ var StartScreen = new Phaser.Class({
         this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
         this.load.image('logo', './src/assets/logo.png');
         this.load.image('bricklogo', './src/assets/bricklogo.png');
+        this.load.audio('startmusic', './src/assets/Sound/bensound-scifi.mp3');
     },
 
 
     create: function ()
     {
+        this.startmusic = this.sound.add('startmusic');
+        this.startmusic.play();
+
         this.logo = this.add.image(400, 100, 'logo');
         this.bricklogo = this.add.image(400,300,'bricklogo');
         this.add.text(260, 400, 'Controls:', { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
@@ -83,6 +91,7 @@ var StartScreen = new Phaser.Class({
       if (this.cursors.space.isDown) {
         lives = 3;
         level = 1;
+        this.startmusic.stop();
         this.scene.start('LevelStart');
       }
     },
@@ -122,6 +131,7 @@ var LevelStart = new Phaser.Class({
       this.load.image('tile5', './src/assets/bricks/tile5.png');
       this.load.image('ground', './src/assets/platform.png');
       this.load.image('block30x30', './src/assets/bricks/block30x30.png');
+      this.load.audio('go', './src/assets/Sound/go.ogg');
     },
 
     create: function ()
@@ -166,6 +176,8 @@ var LevelStart = new Phaser.Class({
         callbackScope: this,
         loop: true
       });
+      var go = this.sound.add('go');
+      go.play();
 
     },
 
@@ -195,7 +207,7 @@ var LevelComplete = new Phaser.Class({
     Extends: Phaser.Scene,
     initialize:
     function LevelComplete() {
-        Phaser.Scene.call(this, { key: 'LevelComplete' });
+        Phaser.Scene.call(this, { key: 'LevelComplete', active: false  });
     },
 
     preload: function ()
@@ -210,11 +222,13 @@ var LevelComplete = new Phaser.Class({
       this.load.image('tile5', './src/assets/bricks/tile5.png');
       this.load.image('ground', './src/assets/platform.png');
       this.load.image('block30x30', './src/assets/bricks/block30x30.png');
+
+      this.load.audio('congratulations', './src/assets/Sound/congratulations.ogg');
     },
 
     create: function ()
     {
-
+      bgmusic.stop();
       var thisscene = this;
       this.counter = 0;
       this.fountactive = false;
@@ -248,8 +262,10 @@ var LevelComplete = new Phaser.Class({
       this.add.text(35, 30, 'Score:', { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
       this.add.text(35, 50, pad(score), { fontFamily: 'Arial', fontSize: 20, color: '#ffffff' });
       stack = this.physics.add.staticGroup();
-      stackCopy.forEach(item => this.stack.create(item.x, item.y,item.texture));
+      stackCopy.forEach(item => stack.create(item.x, item.y,item.texture));
       //this.stackCopy = stack;
+      var congratulations = this.sound.add('congratulations');
+      congratulations.play();
 
       this.timer = this.time.addEvent({
         delay: 2000,
@@ -277,7 +293,6 @@ var LevelComplete = new Phaser.Class({
         this.scene.start('GameStart');
       }
     }
-
 });
 
 
@@ -300,11 +315,13 @@ var GameOver = new Phaser.Class({
       this.load.image('tile5', './src/assets/bricks/tile5.png');
       this.load.image('ground', './src/assets/platform.png');
       this.load.image('block30x30', './src/assets/bricks/block30x30.png');
+      this.load.audio('gameovervoice', './src/assets/Sound/game_over.ogg');
+      this.load.audio('you_lose', './src/assets/Sound/you_lose.ogg');
     },
 
     create: function ()
     {
-
+      bgmusic.stop();
       var thisscene = this;
       this.counter = 0;
       this.fountactive = false;
@@ -346,6 +363,13 @@ var GameOver = new Phaser.Class({
         callbackScope: this,
         loop: true
       });
+
+      if(lives == 0) {
+        var gameovervoice = this.sound.add('gameovervoice');
+      } else {
+        var gameovervoice = this.sound.add('you_lose');
+      }
+      gameovervoice.play();
     },
 
     update: function()
@@ -388,7 +412,7 @@ const config = {
   height: 600,
   //scene: [ StartScreen, { key:"MainGame", preload: preload, create: create, update: update } ]
   //scene: [ StartScreen, LevelStart, { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver  ]
-  scene: [ { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver    ]
+  scene: [ StartScreen, LevelStart, { key:"MainGame", preload: preload, create: create, update: update }, LevelComplete, GameOver    ]
 };
 
 
@@ -409,7 +433,10 @@ function preload() {
   this.load.image('ground', './src/assets/platform.png');
   this.load.image('block30x30', './src/assets/bricks/block30x30.png');
   //this.load.image("logo", logoImg);
-  //this.load.image('tile1', tile1);
+  //Sound
+  this.load.audio('bgmusic', './src/assets/Sound/bensound-summer.mp3');
+  this.load.audio('impact', './src/assets/Sound/impactMining_001.ogg');
+  this.load.audio('linescored', './src/assets/Sound/lowDown.ogg');
 }
 
 //for score
@@ -532,6 +559,22 @@ function create() {
 
   //brick.children.entries.forEach(child => stack.create(child.body.x, child.body.y+100,child.texture));
   stackCollider = this.physics.add.collider(brick, stack, tileHitsGroundOrBlock,null,this);
+  //Create Audio
+  /*
+  var bgmusicconfig = {
+    disableWebAudio: true,
+    mute: true,
+    volume: 1,
+    rate: 1,
+    detune: 0,
+    seek: 0,
+    loop: true,
+    delay: 0
+  }*/
+  bgmusic = this.sound.add('bgmusic');
+  bgmusic.play();
+  impact = this.sound.add('impact');
+  linescored = this.sound.add('linescored');
   //Control the update, stop it from running until the create has finished
   updatelock = false;
 }
@@ -936,13 +979,14 @@ function update() {
 
     //Increment the flashing tiles
     var incrementflashtiles = stack.children.entries.filter(tile => (tile.flashcount >= 0));
-    console.log(incrementflashtiles);
     incrementflashtiles.forEach(flashing => flashing.flashcount++);
     for (var i =0;i<incrementflashtiles.length;i++) {
       if(incrementflashtiles[i].flashcount >= 20) {
         destroyFlashingTile(incrementflashtiles[i].x, incrementflashtiles[i].y);
         incrementflashtiles[i].destroy();
         justdestroyed = true;
+      } else if (incrementflashtiles[i].flashcount == 1) {
+        linescored.play();
       }
     }
 
@@ -1070,6 +1114,8 @@ function tileHitsGroundOrBlock() {
       child.destroy();
     }
     for(var i=0;i<newBricksArray.length;i++) {
+      //Play sound effect
+      impact.play();
       stack.create(newBricksArray[i].x, newBricksArray[i].y,newBricksArray[i].t).refreshBody();
 
     }
@@ -1081,6 +1127,8 @@ function tileHitsGroundOrBlock() {
         //console.log(Math.round((child.body.y+1)));
         //Line below is *HOPEFULLY* fixing the fallthrough issue
         if(!verticallyalligned) {
+          //Play sound effect
+          impact.play();
           stack.create(((Math.round(child.body.x / 60) * 60)), Math.round((child.body.y+1) / 60) * 60,child.texture).refreshBody();
           brick.children.entries.forEach(brick => brick.body.y = child.body.y+1);
         } else {
